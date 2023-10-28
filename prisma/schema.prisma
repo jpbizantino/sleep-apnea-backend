@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  userId     String @id @default(auto()) @map("_id") @db.ObjectId
+  email      String @unique
+  name       String
+  role       Roles  @relation(fields: [roleRoleId], references: [roleId])
+  roleId     String @db.ObjectId
+  roleRoleId String @db.ObjectId
+}
+
+model Roles {
+  roleId String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String  @unique
+  active Boolean
+
+  User Users[]
+}
+
+model Patients {
+  patientId   String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName   String
+  lastName    String
+  email       String
+  dateOfBirth DateTime
+  gender      String
+  weight      Int
+  height      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Input       Input[]
+}
+
+model Parameters {
+  parameterId          String @id @default(auto()) @map("_id") @db.ObjectId
+  parameterName        String @unique
+  parameterValue       String
+  parameterDescription String
+}
+
+type Rule {
+  processingRule String
+  valueA         Int
+  valueB         Int
+}
+
+model Questions {
+  questionId   String   @id @default(auto()) @map("_id") @db.ObjectId
+  question     String
+  descriptcion String
+  order        Int
+  questionType String
+  rule         Rule
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  ruleId       String   @db.ObjectId
+}
+
+type Answer {
+  questionId    String
+  selectedValue String
+}
+
+model Input {
+  inputId          String   @id @default(auto()) @map("_id") @db.ObjectId
+  patient          Patients @relation(fields: [patientPatientId], references: [patientId])
+  answer           Answer[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  patientPatientId String   @db.ObjectId
+}
