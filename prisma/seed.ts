@@ -3,26 +3,39 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  const scoreParameter = await prisma.parameters.upsert({
-    where: { parameterName: 'DESITION_SCORE' },
+  const scoreParameter = await prisma.parameter.upsert({
+    where: { name: 'DESITION_SCORE' },
     update: {},
     create: {
-      parameterName: 'DESITION_SCORE',
-      parameterValue: '17',
-      parameterDescription: 'Score para decisión',
+      name: 'DESITION_SCORE',
+      value: '17',
+      description: 'Score para decisión',
     },
   });
 
-  const roleAdmin = await prisma.roles.upsert({
-    where: { name: 'admin' },
+  const roleAdmin = await prisma.role.upsert({
+    where: { name: 'ADMIN' },
     update: {},
     create: {
-      name: 'admin',
+      name: 'ADMIN',
       active: true,
     },
   });
 
-  console.log({ alice: scoreParameter, roleAdmin });
+  const userAdmin = await prisma.user.upsert({
+    where: { email: 'dev@dev.com' },
+    update: {},
+    create: {
+      name: 'Administrador',
+      email: 'dev@dev.com',
+      active: true,
+      password: '1233',
+      roleId: (await prisma.role.findUnique({ where: { name: 'ADMIN' } }))
+        .roleId,
+    },
+  });
+
+  console.log({ alice: scoreParameter, role: roleAdmin, user: userAdmin });
 }
 main()
   .then(async () => {

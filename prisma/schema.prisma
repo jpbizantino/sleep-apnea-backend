@@ -10,24 +10,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
-  userId     String @id @default(auto()) @map("_id") @db.ObjectId
-  email      String @unique
-  name       String
-  role       Roles  @relation(fields: [roleRoleId], references: [roleId])
-  roleId     String @db.ObjectId
-  roleRoleId String @db.ObjectId
+model User {
+  userId   String  @id @default(auto()) @map("_id") @db.ObjectId
+  email    String  @unique
+  name     String
+  role     Role    @relation(fields: [roleId], references: [roleId])
+  roleId   String  @db.ObjectId
+  password String
+  active   Boolean
 }
 
-model Roles {
+model Role {
   roleId String  @id @default(auto()) @map("_id") @db.ObjectId
   name   String  @unique
   active Boolean
 
-  User Users[]
+  User User[]
 }
 
-model Patients {
+model Patient {
   patientId   String   @id @default(auto()) @map("_id") @db.ObjectId
   firstName   String
   lastName    String
@@ -41,11 +42,11 @@ model Patients {
   Input       Input[]
 }
 
-model Parameters {
-  parameterId          String @id @default(auto()) @map("_id") @db.ObjectId
-  parameterName        String @unique
-  parameterValue       String
-  parameterDescription String
+model Parameter {
+  parameterId String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String @unique
+  value       String
+  description String
 }
 
 type Rule {
@@ -54,7 +55,7 @@ type Rule {
   valueB         Int
 }
 
-model Questions {
+model Question {
   questionId   String   @id @default(auto()) @map("_id") @db.ObjectId
   question     String
   descriptcion String
@@ -73,7 +74,7 @@ type Answer {
 
 model Input {
   inputId          String   @id @default(auto()) @map("_id") @db.ObjectId
-  patient          Patients @relation(fields: [patientPatientId], references: [patientId])
+  patient          Patient  @relation(fields: [patientPatientId], references: [patientId])
   answer           Answer[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
