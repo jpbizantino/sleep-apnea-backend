@@ -17,17 +17,17 @@ export class UsersService {
 
     createUserDto.password = hashedPassword;
 
-    return this.prisma.users.create({
+    return this.prisma.user.create({
       data: createUserDto,
     });
   }
 
   async findAll() {
-    return await this.prisma.users.findMany();
+    return await this.prisma.user.findMany();
   }
 
   async findOne(userId: string) {
-    return await this.prisma.users.findUnique({ where: { userId: userId } });
+    return await this.prisma.user.findUnique({ where: { userId: userId } });
   }
 
   async update(userId: string, updateUserDto: UpdateUserDto) {
@@ -38,13 +38,13 @@ export class UsersService {
       );
     }
 
-    return this.prisma.users.update({
+    return this.prisma.user.update({
       where: { userId: userId },
       data: updateUserDto,
     });
   }
 
   remove(userid: string) {
-    return this.prisma.users.delete({ where: { userId: userid } });
+    return this.prisma.user.delete({ where: { userId: userid } });
   }
 }

@@ -8,27 +8,27 @@ export class PatientsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createPatientDto: CreatePatientDto) {
-    return await this.prisma.patients.create({
+    return await this.prisma.patient.create({
       data: createPatientDto,
     });
   }
 
   async findAll() {
-    return await this.prisma.patients.findMany();
+    return await this.prisma.patient.findMany();
   }
 
   async findOne(id: string) {
-    return await this.prisma.patients.findUnique({ where: { patientId: id } });
+    return await this.prisma.patient.findUnique({ where: { patientId: id } });
   }
 
   async update(id: string, updatePatientDto: UpdatePatientDto) {
-    return await this.prisma.patients.update({
+    return await this.prisma.patient.update({
       where: { patientId: id },
       data: updatePatientDto,
     });
   }
 
   async remove(id: string) {
-    return await this.prisma.patients.delete({ where: { patientId: id } });
+    return await this.prisma.patient.delete({ where: { patientId: id } });
   }
 }

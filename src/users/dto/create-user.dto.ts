@@ -10,24 +10,19 @@ import {
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  @ApiProperty()
-  username: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  nameOne: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  nameTwo: string;
-
-  @IsString()
-  @IsNotEmpty()
   @IsEmail()
   @ApiProperty()
   email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  roleId: string;
 
   @IsBoolean()
   @IsNotEmpty()
