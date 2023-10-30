@@ -60,13 +60,12 @@ type Rule {
 model Question {
   questionId   String   @id @default(auto()) @map("_id") @db.ObjectId
   question     String
-  descriptcion String
+  description  String
   order        Int
   questionType String
   rule         Rule
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  ruleId       String   @db.ObjectId
 }
 
 type Answer {
