@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { RuleEntity } from './rule.entity';
-import { QuestionType } from 'src/common/enums/question.enum';
 import { ChoiceEntity } from './choice.entity';
+import { RuleEntity } from './rule.entity';
 
 export class QuestionEntity {
   @ApiProperty()
-  question: number;
+  questionId: string;
+
+  @ApiProperty()
+  question: string;
 
   @ApiProperty()
   description: string;
@@ -14,7 +16,7 @@ export class QuestionEntity {
   order: number;
 
   @ApiProperty()
-  questionType: QuestionType;
+  questionType: string;
 
   @ApiProperty()
   images: string[];
@@ -24,4 +26,10 @@ export class QuestionEntity {
 
   @ApiProperty()
   rule: RuleEntity;
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  updatedAt: Date;
 }

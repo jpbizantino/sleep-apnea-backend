@@ -27,9 +27,9 @@ async function main() {
     update: {},
     create: {
       name: 'Administrador',
-      email: 'dev@dev.com',
+      email: 'admin@admin.com',
       active: true,
-      password: '1233',
+      password: '123456',
       roleId: (await prisma.role.findUnique({ where: { name: 'ADMIN' } }))
         .roleId,
     },
