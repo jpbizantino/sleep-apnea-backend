@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+const roundsOfHashing = 10;
 
 const prisma = new PrismaClient();
 
@@ -22,20 +24,35 @@ async function main() {
     },
   });
 
-  const userAdmin = await prisma.user.upsert({
-    where: { email: 'dev@dev.com' },
+  const hassedPass = await bcrypt.hash('123456', roundsOfHashing);
+
+  const userDev = await prisma.user.upsert({
+    where: { email: 'dev' },
     update: {},
     create: {
-      name: 'Administrador',
-      email: 'admin@admin.com',
+      name: 'Developer',
+      email: 'dev',
       active: true,
-      password: '123456',
+      password: hassedPass,
       roleId: (await prisma.role.findUnique({ where: { name: 'ADMIN' } }))
         .roleId,
     },
   });
 
-  console.log({ alice: scoreParameter, role: roleAdmin, user: userAdmin });
+  const userAdmin = await prisma.user.upsert({
+    where: { email: 'admin' },
+    update: {},
+    create: {
+      name: 'Administrador',
+      email: 'admin',
+      active: true,
+      password: hassedPass,
+      roleId: (await prisma.role.findUnique({ where: { name: 'ADMIN' } }))
+        .roleId,
+    },
+  });
+
+  console.log({ scoreParameter, roleAdmin, userAdmin, userDev });
 }
 main()
   .then(async () => {
