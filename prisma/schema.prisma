@@ -41,7 +41,8 @@ model Patient {
   height      Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  Survey      Survey[]
+
+  Survey Survey[]
 }
 
 model Parameter {
@@ -58,6 +59,7 @@ type Rule {
 }
 
 type Choice {
+  choiceId    String
   description String
   choiceValue Int
   order       Int
@@ -69,7 +71,7 @@ model Question {
   description  String
   order        Int
   questionType String
-  images       String[]
+  image        String
   choices      Choice[]
   rule         Rule
   createdAt    DateTime @default(now())
@@ -78,14 +80,16 @@ model Question {
 
 type Answer {
   questionId    String
-  selectedValue String
+  jsonQuestion  String
+  selectedValue Int
 }
 
 model Survey {
-  surveyId  String   @id @default(auto()) @map("_id") @db.ObjectId
-  patient   Patient  @relation(fields: [patientId], references: [patientId])
-  answer    Answer[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  patientId String   @db.ObjectId
+  surveyId        String   @id @default(auto()) @map("_id") @db.ObjectId
+  patient         Patient  @relation(fields: [patientId], references: [patientId])
+  answers         Answer[]
+  calculatedScore Int?     @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  patientId       String   @db.ObjectId
 }

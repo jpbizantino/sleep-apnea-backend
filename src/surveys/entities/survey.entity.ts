@@ -1,15 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AnswerEntity } from './answer.entity';
+import { Optional } from '@nestjs/common';
 
 export class SurveyEntity {
   @ApiProperty()
   surveyId: string;
 
   @ApiProperty()
-  patient: string;
+  patientId: string;
 
   @ApiProperty()
-  answer: AnswerEntity[];
+  answers: AnswerEntity[];
+
+  @ApiProperty()
+  @Optional()
+  calculatedStore: number;
 
   @ApiProperty()
   createdAt: string;

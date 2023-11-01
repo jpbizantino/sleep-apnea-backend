@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSurveyDto } from './dto/create-survey.dto';
-import { UpdateSurveyDto } from './dto/update-survey.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { ResultDto } from './dto/result.dto';
-import { QuestionEntity } from 'src/questions/entities/question.entity';
-import { ParameterName } from 'src/common/enums/parameter.enum';
 import { Survey } from '@prisma/client';
-import { AnswerEntity } from './entities/answer.entity';
+import { ParameterName } from 'src/common/enums/parameter.enum';
 import { ProcessingRule } from 'src/common/enums/rule.enum';
+import { QuestionEntity } from 'src/questions/entities/question.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateSurveyDto } from './dto/create-survey.dto';
+import { ResultDto } from './dto/result.dto';
+import { UpdateSurveyDto } from './dto/update-survey.dto';
+import { AnswerEntity } from './entities/answer.entity';
 
 @Injectable()
 export class SurveysService {
@@ -15,12 +15,17 @@ export class SurveysService {
 
   async create(createSurveyDto: CreateSurveyDto) {
     return this.prisma.survey.create({
-      data: createSurveyDto,
+      data: {
+        patientId: createSurveyDto.patientId,
+        answers: createSurveyDto.answers,
+      },
     });
   }
 
   async findAll() {
-    return await this.prisma.survey.findMany();
+    return await this.prisma.survey.findMany({
+      include: { patient: true },
+    });
   }
 
   async findOne(id: string) {
@@ -39,7 +44,7 @@ export class SurveysService {
   }
 
   runAlgorithm = async (Id: string): Promise<ResultDto> => {
-    let counter = 0;
+    let calculatedScore = 0;
     let desitionScore = 0;
 
     const positiveMessage =
@@ -68,9 +73,9 @@ export class SurveysService {
     await this.prisma.survey
       .findUnique({ where: { surveyId: Id } })
       .then((survey: Survey) => {
-        survey.answer.forEach((item: AnswerEntity) => {
+        survey.answers.forEach((item: AnswerEntity) => {
           // Cast selected values
-          const selectedValue = parseInt(item.selectedValue);
+          const selectedValue = item.selectedValue;
 
           // Find question
           const question = questions.find(
@@ -79,18 +84,25 @@ export class SurveysService {
 
           if (!question) return;
 
-          if (this.isValueValid(selectedValue, question)) counter++;
+          if (this.isValueValid(selectedValue, question)) calculatedScore++;
         });
       });
 
+    // Update Survey Score
+    await this.prisma.survey.update({
+      where: { surveyId: Id },
+      data: { calculatedScore: calculatedScore },
+    });
+
     // Return score result
-    if (counter < desitionScore) return { ...resultDto, score: counter };
+    if (calculatedScore < desitionScore)
+      return { ...resultDto, score: calculatedScore };
     else
       return {
         ...resultDto,
         positive: true,
         message: positiveMessage,
-        score: counter,
+        score: calculatedScore,
       };
   };
 

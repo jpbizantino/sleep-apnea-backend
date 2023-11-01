@@ -26,7 +26,7 @@ export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   // @ApiBearerAuth()
   @ApiCreatedResponse({ type: PatientEntity })
   create(@Body() createPatientDto: CreatePatientDto) {

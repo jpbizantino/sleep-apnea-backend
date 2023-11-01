@@ -4,6 +4,10 @@ import { IsNotEmpty, IsNumber, Min } from 'class-validator';
 export class ChoiceDto {
   @IsNotEmpty()
   @ApiProperty()
+  choiceId: string;
+
+  @IsNotEmpty()
+  @ApiProperty()
   description: string;
 
   @IsNotEmpty()

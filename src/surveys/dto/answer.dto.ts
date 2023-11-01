@@ -1,12 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class AnswerDto {
   @ApiProperty()
+  @IsNotEmpty()
   questionId: string;
 
   @ApiProperty()
-  selectedDescription: string;
+  @IsNotEmpty()
+  selectedValue: number;
 
   @ApiProperty()
-  selectedValue: string;
+  @IsNotEmpty()
+  @IsString()
+  jsonQuestion: string;
 }

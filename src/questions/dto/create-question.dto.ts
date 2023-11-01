@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
+  IsOptional,
   Min,
   ValidateIf,
   ValidateNested,
@@ -49,6 +50,9 @@ export class CreateQuestionDto {
   @Type(() => RuleDto)
   @ApiProperty()
   rule: RuleDto;
+
+  @IsNotEmpty()
+  image: string;
 
   constructor() {
     this.order = 0;

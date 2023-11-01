@@ -5,8 +5,8 @@ export class AnswerEntity {
   questionId: string;
 
   @ApiProperty()
-  selectedDescription: string;
+  selectedValue: number;
 
   @ApiProperty()
-  selectedValue: string;
+  jsonQuestion: string;
 }
