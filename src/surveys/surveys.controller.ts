@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  Header,
+  StreamableFile,
 } from '@nestjs/common';
 import { SurveysService } from './surveys.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';
@@ -34,6 +36,14 @@ export class SurveysController {
     return this.surveysService.create(createSurveyDto);
   }
 
+  @Get('/exportExcel')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Header('Content-Disposition', 'attachment; filename="SheetJSNest.xlsx"')
+  async downloadXlsxFile(): Promise<StreamableFile> {
+    return await this.surveysService.getSurveysOnExcel();
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -46,8 +56,8 @@ export class SurveysController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: SurveyEntity })
-  findOne(@Param('id') id: string) {
-    return this.surveysService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.surveysService.findOne(id);
   }
 
   @Get('/runAlgorithm/:id')

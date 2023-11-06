@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
@@ -6,15 +7,13 @@ import {
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
-  IsOptional,
   Min,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
+import { QuestionType } from 'src/common/enums/question.enum';
 import { ChoiceDto } from './choice.dto';
 import { RuleDto } from './rule.dto';
-import { ApiProperty } from '@nestjs/swagger';
-import { QuestionType } from 'src/common/enums/question.enum';
 
 export class CreateQuestionDto {
   @IsNotEmpty()
@@ -52,7 +51,7 @@ export class CreateQuestionDto {
   rule: RuleDto;
 
   @IsNotEmpty()
-  image: string;
+  imageLink: string;
 
   constructor() {
     this.order = 0;

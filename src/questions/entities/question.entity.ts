@@ -19,7 +19,7 @@ export class QuestionEntity {
   questionType: string;
 
   @ApiProperty()
-  image: string;
+  imageLink: string;
 
   @ApiProperty()
   choices: ChoiceEntity[];

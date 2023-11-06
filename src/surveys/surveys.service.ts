@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import { Survey } from '@prisma/client';
 import { ParameterName } from 'src/common/enums/parameter.enum';
 import { ProcessingRule } from 'src/common/enums/rule.enum';
@@ -8,6 +8,7 @@ import { CreateSurveyDto } from './dto/create-survey.dto';
 import { ResultDto } from './dto/result.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { AnswerEntity } from './entities/answer.entity';
+import { write, utils } from 'xlsx';
 
 @Injectable()
 export class SurveysService {
@@ -28,19 +29,22 @@ export class SurveysService {
     });
   }
 
-  async findOne(id: string) {
-    return await this.prisma.survey.findUnique({ where: { surveyId: id } });
+  async findOne(surveyId: string): Promise<Survey | null> {
+    return await this.prisma.survey.findUnique({
+      where: { surveyId },
+      include: { patient: true },
+    });
   }
 
-  update(id: string, updateSurveyDto: UpdateSurveyDto) {
-    return this.prisma.survey.update({
+  async update(id: string, updateSurveyDto: UpdateSurveyDto) {
+    return await this.prisma.survey.update({
       where: { surveyId: id },
       data: updateSurveyDto,
     });
   }
 
-  remove(id: string) {
-    return this.prisma.user.delete({ where: { userId: id } });
+  async remove(id: string) {
+    return await this.prisma.user.delete({ where: { userId: id } });
   }
 
   runAlgorithm = async (Id: string): Promise<ResultDto> => {
@@ -129,4 +133,14 @@ export class SurveysService {
 
     return isValid;
   };
+
+  async getSurveysOnExcel(): Promise<StreamableFile> {
+    const ws = utils.aoa_to_sheet(['SheetJS'.split(''), [5, 4, 3, 3, 7, 9, 5]]);
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Data');
+    /* generate buffer */
+    const buf = write(wb, { type: 'buffer', bookType: 'xlsx' });
+    /* Return a streamable file */
+    return new StreamableFile(buf);
+  }
 }

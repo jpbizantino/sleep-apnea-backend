@@ -71,7 +71,7 @@ model Question {
   description  String
   order        Int
   questionType String
-  image        String
+  imageLink    String
   choices      Choice[]
   rule         Rule
   createdAt    DateTime @default(now())
