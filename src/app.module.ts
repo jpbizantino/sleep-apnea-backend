@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { QuestionsModule } from './questions/questions.module';
 import { SurveysModule } from './surveys/surveys.module';
 import { PrismaModule } from 'nestjs-prisma';
+import { EmailModule } from './mailer/email.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PrismaModule } from 'nestjs-prisma';
     QuestionsModule,
     SurveysModule,
     PrismaModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

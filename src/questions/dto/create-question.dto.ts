@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
+  IsUrl,
   Min,
   ValidateIf,
   ValidateNested,
@@ -50,7 +51,8 @@ export class CreateQuestionDto {
   @ApiProperty()
   rule: RuleDto;
 
-  @IsNotEmpty()
+  @ValidateIf((o) => o.imageLink && o.imageLink.length > 0)
+  @IsUrl()
   imageLink: string;
 
   constructor() {
