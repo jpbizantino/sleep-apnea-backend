@@ -19,7 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { QuestionEntity } from './entities/question.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('questions')
 @ApiTags('questions')
@@ -30,23 +30,26 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: QuestionEntity })
-  create(@Body() createQuestionDto: CreateQuestionDto) {
-    return this.questionsService.create(createQuestionDto);
+  async create(@Body() createQuestionDto: CreateQuestionDto) {
+    return new QuestionEntity(
+      await this.questionsService.create(createQuestionDto),
+    );
   }
 
   @Get('/survey')
   // @UseGuards(JwtAuthGuard)
   // @ApiBearerAuth()
   @ApiOkResponse({ type: QuestionEntity, isArray: true })
-  findAllSurvey() {
-    return this.questionsService.findAllSurvey();
+  async findAllSurvey() {
+    const questions = await this.questionsService.findAllSurvey();
+    return questions.map((question) => new QuestionEntity(question));
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: QuestionEntity, isArray: true })
-  findAll() {
+  asyncfindAll() {
     return this.questionsService.findAll();
   }
 
@@ -54,26 +57,28 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: QuestionEntity })
-  findOne(@Param('id') id: string) {
-    return this.questionsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return new QuestionEntity(await this.questionsService.findOne(id));
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: QuestionEntity })
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
   ) {
-    return this.questionsService.update(id, updateQuestionDto);
+    return new QuestionEntity(
+      await this.questionsService.update(id, updateQuestionDto),
+    );
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: QuestionEntity })
-  remove(@Param('id') id: string) {
-    return this.questionsService.remove(id);
+  async remove(@Param('id') id: string) {
+    return new QuestionEntity(await this.questionsService.remove(id));
   }
 }

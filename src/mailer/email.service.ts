@@ -22,10 +22,10 @@ export class EmailService {
         html: htmBody, // HTML body content
       })
       .then(() => {
-        console.log('ok');
+        console.log('Email Sent OK');
       })
       .catch(() => {
-        console.log('error');
+        console.log('Email Failed !!!');
       });
   }
 }

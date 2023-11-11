@@ -18,7 +18,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { PatientEntity } from './entities/patient.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('patients')
 @Controller('patients')
@@ -29,39 +29,48 @@ export class PatientsController {
   //@UseGuards(JwtAuthGuard)
   // @ApiBearerAuth()
   @ApiCreatedResponse({ type: PatientEntity })
-  create(@Body() createPatientDto: CreatePatientDto) {
-    return this.patientsService.create(createPatientDto);
+  async create(@Body() createPatientDto: CreatePatientDto) {
+    return new PatientEntity(
+      await this.patientsService.create(createPatientDto),
+    );
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: PatientEntity, isArray: true })
-  findAll() {
-    return this.patientsService.findAll();
+  async findAll() {
+    const patients = await this.patientsService.findAll();
+
+    return patients.map((patient) => new PatientEntity(patient));
   }
 
-  @Get(':id')
+  @Get(':patientId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: PatientEntity })
-  findOne(@Param('id') id: string) {
-    return this.patientsService.findOne(id);
+  async findOne(@Param('patientId') patientId: string) {
+    return new PatientEntity(await this.patientsService.findOne(patientId));
   }
 
-  @Patch(':id')
+  @Patch(':patientId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: PatientEntity })
-  update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
-    return this.patientsService.update(id, updatePatientDto);
+  async update(
+    @Param('patientId') patientId: string,
+    @Body() updatePatientDto: UpdatePatientDto,
+  ) {
+    return new PatientEntity(
+      await this.patientsService.update(patientId, updatePatientDto),
+    );
   }
 
-  @Delete(':id')
+  @Delete(':patientId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: PatientEntity })
-  remove(@Param('id') id: string) {
-    return this.patientsService.remove(id);
+  async remove(@Param('patientId') patientId: string) {
+    return new PatientEntity(await this.patientsService.remove(patientId));
   }
 }

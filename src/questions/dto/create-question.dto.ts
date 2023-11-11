@@ -13,7 +13,7 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { QuestionType } from 'src/common/enums/question.enum';
+import { QuestionType } from '../../common/enums/question.enum';
 import { ChoiceDto } from './choice.dto';
 import { RuleDto } from './rule.dto';
 

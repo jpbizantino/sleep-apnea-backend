@@ -1,12 +1,12 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
 import { Question } from '@prisma/client';
 import { differenceInYears, format } from 'date-fns';
-import { ParameterName } from 'src/common/enums/parameter.enum';
-import { ProcessingRule } from 'src/common/enums/rule.enum';
-import { truncateString } from 'src/common/utils/string.utils';
-import { EmailService } from 'src/mailer/email.service';
-import { QuestionEntity } from 'src/questions/entities/question.entity';
-import { QuestionsService } from 'src/questions/questions.service';
+import { ParameterName } from '../common/enums/parameter.enum';
+import { ProcessingRule } from '../common/enums/rule.enum';
+import { truncateString } from '../common/utils/string.utils';
+import { EmailService } from '../mailer/email.service';
+import { QuestionEntity } from '../questions/entities/question.entity';
+import { QuestionsService } from '../questions/questions.service';
 import { utils, write } from 'xlsx';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';

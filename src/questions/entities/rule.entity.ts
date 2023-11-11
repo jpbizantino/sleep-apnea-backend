@@ -1,9 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ProcessingRule } from 'src/common/enums/rule.enum';
 
 export class RuleEntity {
+  constructor(partial: Partial<RuleEntity>) {
+    Object.assign(this, partial);
+  }
+
   @ApiProperty()
-  processingRule: ProcessingRule;
+  processingRule: string;
 
   @ApiProperty()
   valueA: number;

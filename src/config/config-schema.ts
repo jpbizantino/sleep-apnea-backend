@@ -7,12 +7,17 @@ export const configSchema = Joi.object({
 
   DATABASE_URL: Joi.string().required(),
 
-  EMAIL: {
-    FROM: Joi.string().required(),
-    HOST: Joi.string().required(),
-    PORT: Joi.number().default(465),
-    SECURE: Joi.boolean().required().default(true),
-    USER: Joi.string().required(),
-    PASS: Joi.string().required(),
-  },
+  EMAIL_FROM: Joi.string().required(),
+
+  EMAIL_HOST: Joi.string().required(),
+
+  EMAIL_PORT: Joi.number().default(465),
+
+  EMAIL_SECURE: Joi.boolean().required().default(true),
+
+  EMAIL_USER: Joi.string().required(),
+
+  EMAIL_PASS: Joi.string().required(),
+
+  EMAIL_BCC: Joi.string().required(),
 });

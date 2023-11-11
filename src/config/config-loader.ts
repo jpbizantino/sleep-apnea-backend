@@ -16,4 +16,6 @@ export const configLoader = () => ({
   EMAIL_USER: process.env.EMAIL_USER,
 
   EMAIL_PASS: process.env.EMAIL_PASS,
+
+  EMAIL_BCC: process.env.EMAIL_BCC,
 });

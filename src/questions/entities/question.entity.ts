@@ -3,6 +3,10 @@ import { ChoiceEntity } from './choice.entity';
 import { RuleEntity } from './rule.entity';
 
 export class QuestionEntity {
+  constructor(partial: Partial<QuestionEntity>) {
+    Object.assign(this, partial);
+  }
+
   @ApiProperty()
   questionId: string;
 

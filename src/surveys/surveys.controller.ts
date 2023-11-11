@@ -16,7 +16,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { ResultDto } from './dto/result.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';

@@ -1,6 +1,5 @@
 // export class CreatePatientDto {}
 
-import { PartialType } from '@nestjs/mapped-types';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
