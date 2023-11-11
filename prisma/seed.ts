@@ -15,6 +15,46 @@ async function main() {
     },
   });
 
+  const ageRule = await prisma.parameter.upsert({
+    where: { name: 'AGE_GREATER_THAN' },
+    update: {},
+    create: {
+      name: 'AGE_GREATER_THAN',
+      value: '29',
+      description: 'Edad a partir de la cual suma 1 al score',
+    },
+  });
+
+  const genderRule = await prisma.parameter.upsert({
+    where: { name: 'IS_A_MAN' },
+    update: {},
+    create: {
+      name: 'IS_A_MAN',
+      value: 'M',
+      description: 'Si el encuestador el MALE suma 1 al score',
+    },
+  });
+
+  const bmiRule = await prisma.parameter.upsert({
+    where: { name: 'BMI_EQUAL_OR_GREATER_THAN' },
+    update: {},
+    create: {
+      name: 'BMI_EQUAL_OR_GREATER_THAN',
+      value: '25',
+      description: 'Indice de Masa Corporal',
+    },
+  });
+
+  const bmiScore = await prisma.parameter.upsert({
+    where: { name: 'BMI_SCORE' },
+    update: {},
+    create: {
+      name: 'BMI_SCORE',
+      value: '2',
+      description: 'Edad a partir de la cual suma 1 al score',
+    },
+  });
+
   const roleAdmin = await prisma.role.upsert({
     where: { name: 'ADMIN' },
     update: {},
@@ -52,7 +92,16 @@ async function main() {
     },
   });
 
-  console.log({ scoreParameter, roleAdmin, userAdmin, userDev });
+  console.log({
+    scoreParameter,
+    roleAdmin,
+    userAdmin,
+    userDev,
+    ageRule,
+    genderRule,
+    bmiRule,
+    bmiScore,
+  });
 }
 main()
   .then(async () => {

@@ -48,7 +48,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async findOne(@Param('userId', ParseUUIDPipe) userId: string) {
+  async findOne(@Param('userId') userId: string) {
     return new UserEntity(await this.usersService.findOne(userId));
   }
 
@@ -57,7 +57,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async update(
-    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('userId') userId: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return new UserEntity(
@@ -69,7 +69,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async remove(@Param('userId', ParseUUIDPipe) userId: string) {
+  async remove(@Param('userId') userId: string) {
     return new UserEntity(await this.usersService.remove(userId));
   }
 }

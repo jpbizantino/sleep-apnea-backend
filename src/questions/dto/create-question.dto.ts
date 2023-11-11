@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   ArrayNotEmpty,
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNotEmptyObject,
@@ -54,6 +55,10 @@ export class CreateQuestionDto {
   @ValidateIf((o) => o.imageLink && o.imageLink.length > 0)
   @IsUrl()
   imageLink: string;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  active: boolean;
 
   constructor() {
     this.order = 0;

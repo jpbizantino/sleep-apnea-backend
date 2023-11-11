@@ -28,6 +28,9 @@ export class QuestionEntity {
   rule: RuleEntity;
 
   @ApiProperty()
+  active: boolean;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

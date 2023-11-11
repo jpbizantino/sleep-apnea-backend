@@ -8,5 +8,8 @@ export class AnswerEntity {
   selectedValue: number;
 
   @ApiProperty()
+  selectedText: string;
+
+  @ApiProperty()
   jsonQuestion: string;
 }

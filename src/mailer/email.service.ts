@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class EmailService {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private mailerService: MailerService,
+    private configService: ConfigService,
+  ) {}
 
   async sendEmail(
     emailRecipients: string[] = [],
@@ -11,6 +14,7 @@ export class EmailService {
   ) {
     this.mailerService
       .sendMail({
+        bcc: this.configService.get('EMAIL_BCC'),
         to: emailRecipients, // list of receivers
         //from: 'sistemas@totalsleep.com.ar', // sender address
         subject: 'Resultado de encuesta', // Subject line

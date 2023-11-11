@@ -34,9 +34,17 @@ export class QuestionsController {
     return this.questionsService.create(createQuestionDto);
   }
 
-  @Get()
+  @Get('/survey')
   // @UseGuards(JwtAuthGuard)
   // @ApiBearerAuth()
+  @ApiOkResponse({ type: QuestionEntity, isArray: true })
+  findAllSurvey() {
+    return this.questionsService.findAllSurvey();
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: QuestionEntity, isArray: true })
   findAll() {
     return this.questionsService.findAll();

@@ -15,6 +15,10 @@ export class QuestionsService {
     return await this.prisma.question.findMany();
   }
 
+  async findAllSurvey() {
+    return await this.prisma.question.findMany({ where: { active: true } });
+  }
+
   async findOne(id: string) {
     return await this.prisma.question.findUnique({ where: { questionId: id } });
   }

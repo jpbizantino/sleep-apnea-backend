@@ -22,6 +22,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         },
         defaults: {
           from: configService.get('EMAIL_FROM'),
+          bcc: configService.get('EMAIL_BCC'),
         },
       }),
       inject: [ConfigService],

@@ -4,10 +4,11 @@ import { SurveysController } from './surveys.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { QuestionsService } from 'src/questions/questions.service';
 import { EmailService } from 'src/mailer/email.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   controllers: [SurveysController],
   providers: [SurveysService, QuestionsService, EmailService],
-  imports: [PrismaModule],
+  imports: [PrismaModule, ConfigModule.forRoot()],
 })
 export class SurveysModule {}

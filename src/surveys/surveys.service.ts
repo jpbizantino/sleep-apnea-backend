@@ -1,5 +1,6 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
-import { Question, Survey } from '@prisma/client';
+import { Question } from '@prisma/client';
+import { differenceInYears, format } from 'date-fns';
 import { ParameterName } from 'src/common/enums/parameter.enum';
 import { ProcessingRule } from 'src/common/enums/rule.enum';
 import { truncateString } from 'src/common/utils/string.utils';
@@ -12,8 +13,6 @@ import { CreateSurveyDto } from './dto/create-survey.dto';
 import { ResultDto } from './dto/result.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { AnswerEntity } from './entities/answer.entity';
-import { convertDateToStringDate } from 'src/common/utils/date.utils';
-import { format } from 'date-fns';
 
 @Injectable()
 export class SurveysService {
@@ -56,15 +55,19 @@ export class SurveysService {
     return await this.prisma.user.delete({ where: { userId: id } });
   }
 
-  runAlgorithm = async (Id: string): Promise<ResultDto> => {
-    let calculatedScore = 0;
+  interpretResult = async (calculatedScore: number): Promise<ResultDto> => {
     let desitionScore = 0;
 
+    // Get score
+    await this.prisma.parameter
+      .findUnique({ where: { name: ParameterName.DESITION_SCORE } })
+      .then((result) => (desitionScore = parseInt(result.value)));
+
     const positiveMessage =
-      'Basado es sus respuestas, Ud. tiene moderada a alta probabilidad de padecer apnea obstructiva del sueño.';
+      'Basado es sus respuestas, Ud. tiene MODERADA a ALTA probabilidad de padecer apnea obstructiva del sueño.';
 
     const negativeMessage =
-      'Basado es sus respuestas, Ud. tiene baja probabilidad de padecer apnea obstructiva del sueño.';
+      'Basado es sus respuestas, Ud. tiene BAJA probabilidad de padecer apnea obstructiva del sueño.';
 
     const resultDto: ResultDto = {
       positive: false,
@@ -74,18 +77,86 @@ export class SurveysService {
       score: 0,
     };
 
+    // Return score result
+    if (calculatedScore < desitionScore)
+      return { ...resultDto, score: calculatedScore };
+    else
+      return {
+        ...resultDto,
+        positive: true,
+        message: positiveMessage,
+        score: calculatedScore,
+      };
+  };
+
+  runAlgorithm = async (Id: string): Promise<number> => {
+    let calculatedScore = 0;
+
+    let ageGreaterThan = 0;
+    let isMan = 'M';
+    let bmiEqualOrGreateThan = 0;
+    let bmiScore = 0;
+
     // Get all questions
     const questions: QuestionEntity[] = []; // await this.prisma.question.findMany();
 
-    // Get score
+    // Get Age for desition
     await this.prisma.parameter
-      .findUnique({ where: { name: ParameterName.DESITION_SCORE } })
-      .then((result) => (desitionScore = parseInt(result.value)));
+      .findUnique({ where: { name: ParameterName.AGE_GREATER_THAN } })
+      .then((result) => (ageGreaterThan = parseInt(result.value)));
+
+    // Get Gender for desition
+    await this.prisma.parameter
+      .findUnique({ where: { name: ParameterName.IS_A_MAN } })
+      .then((result) => (isMan = result.value));
+
+    // Get Gender BMI for desition
+    await this.prisma.parameter
+      .findUnique({ where: { name: ParameterName.BMI_EQUAL_OR_GREATER_THAN } })
+      .then((result) => (bmiEqualOrGreateThan = parseInt(result.value)));
+
+    // Get BMI value
+    await this.prisma.parameter
+      .findUnique({ where: { name: ParameterName.BMI_SCORE } })
+      .then((result) => (bmiScore = parseInt(result.value)));
 
     // Get survey results
     await this.prisma.survey
-      .findUnique({ where: { surveyId: Id } })
-      .then((survey: Survey) => {
+      .findUnique({ where: { surveyId: Id }, include: { patient: true } })
+      .then((survey: any) => {
+        //*******************************
+
+        // Calculate age in years
+        const ageInYears = differenceInYears(
+          survey.createdAt,
+          survey.patient.dateOfBirth,
+        );
+
+        // Score for Age
+        if (ageInYears > ageGreaterThan) {
+          calculatedScore++;
+        }
+
+        console.log(calculatedScore);
+        //*******************************
+
+        // Score is Man
+        if (survey.patient.gender == isMan) calculatedScore++;
+
+        console.log(calculatedScore);
+
+        //*******************************
+
+        //  Calculacte BMI
+
+        const bmi =
+          survey.patient.weight / Math.pow(survey.patient.height / 100, 2);
+
+        if (bmi >= bmiEqualOrGreateThan)
+          calculatedScore = calculatedScore + bmiScore;
+
+        //*******************************
+
         survey.answers.forEach((item: AnswerEntity) => {
           // Cast selected values
           const selectedValue = item.selectedValue;
@@ -107,16 +178,7 @@ export class SurveysService {
       data: { calculatedScore: calculatedScore },
     });
 
-    // Return score result
-    if (calculatedScore < desitionScore)
-      return { ...resultDto, score: calculatedScore };
-    else
-      return {
-        ...resultDto,
-        positive: true,
-        message: positiveMessage,
-        score: calculatedScore,
-      };
+    return calculatedScore;
   };
 
   isValueValid = (selectedValue: number, question: QuestionEntity) => {
@@ -161,7 +223,7 @@ export class SurveysService {
   async sendEmail(surveyId: string) {
     const survey = await this.findOne(surveyId);
 
-    const result = await this.runAlgorithm(surveyId);
+    const result = await this.interpretResult(survey.calculatedScore);
 
     const emailBody = `
       

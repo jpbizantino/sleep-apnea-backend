@@ -12,6 +12,10 @@ export class AnswerDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  selectedText: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   jsonQuestion: string;
 }
