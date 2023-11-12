@@ -13,4 +13,7 @@ export class RuleEntity {
 
   @ApiProperty()
   valueB: number;
+
+  @ApiProperty()
+  scoreToAdd: number;
 }

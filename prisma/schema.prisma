@@ -52,11 +52,11 @@ model Parameter {
   description String
 }
 
-
 type Rule {
   processingRule String
   valueA         Int
   valueB         Int
+  scoreToAdd     Int    @default(1)
 }
 
 type Choice {

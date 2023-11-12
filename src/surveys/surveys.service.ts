@@ -91,7 +91,6 @@ export class SurveysService {
 
   runAlgorithm = async (Id: string): Promise<number> => {
     let calculatedScore = 0;
-
     let ageGreaterThan = 0;
     let isMan = 'M';
     let bmiEqualOrGreateThan = 0;
@@ -133,17 +132,26 @@ export class SurveysService {
         );
 
         // Score for Age
+
+        console.log(
+          'ageInYears > ageGreaterThan',
+          ageInYears,
+          '   ',
+          ageGreaterThan,
+        );
         if (ageInYears > ageGreaterThan) {
           calculatedScore++;
         }
-
-        console.log(calculatedScore);
         //*******************************
 
+        console.log(
+          'survey.patient.gender , isMan',
+          survey.patient.gender,
+          '  ',
+          isMan,
+        );
         // Score is Man
         if (survey.patient.gender == isMan) calculatedScore++;
-
-        console.log(calculatedScore);
 
         //*******************************
 
@@ -151,6 +159,13 @@ export class SurveysService {
 
         const bmi =
           survey.patient.weight / Math.pow(survey.patient.height / 100, 2);
+
+        console.log(
+          '(bmi , bmiEqualOrGreateThan',
+          bmi,
+          '  ',
+          bmiEqualOrGreateThan,
+        );
 
         if (bmi >= bmiEqualOrGreateThan)
           calculatedScore = calculatedScore + bmiScore;
@@ -168,7 +183,8 @@ export class SurveysService {
 
           if (!question) return;
 
-          if (this.isValueValid(selectedValue, question)) calculatedScore++;
+          if (this.isValueValid(selectedValue, question))
+            calculatedScore = calculatedScore + question.rule.scoreToAdd;
         });
       });
 
@@ -192,14 +208,14 @@ export class SurveysService {
     else if (question.rule.processingRule == ProcessingRule.GREATER_THAN)
       isValid = selectedValue > question.rule.valueA;
     else if (
-      question.rule.processingRule == ProcessingRule.IQUAL_OR_GREATER_THAN
+      question.rule.processingRule == ProcessingRule.EQUAL_OR_GREATER_THAN
     )
       isValid = selectedValue >= question.rule.valueA;
     else if (question.rule.processingRule == ProcessingRule.LESS_THAN)
       isValid = selectedValue < question.rule.valueA;
-    else if (question.rule.processingRule == ProcessingRule.IQUAL_OR_LESS_THAN)
+    else if (question.rule.processingRule == ProcessingRule.EQUAL_OR_LESS_THAN)
       isValid = selectedValue <= question.rule.valueA;
-    else if (question.rule.processingRule == ProcessingRule.DATA_AS_RECEIVED)
+    else if (ProcessingRule.EQUAL == question.rule.processingRule)
       isValid = selectedValue == question.rule.valueA;
 
     return isValid;

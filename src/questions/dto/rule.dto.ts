@@ -17,4 +17,9 @@ export class RuleDto {
   @IsNumber()
   @ApiProperty()
   valueB: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @ApiProperty()
+  scoreToAdd: number;
 }
