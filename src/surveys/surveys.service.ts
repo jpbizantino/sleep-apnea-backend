@@ -23,7 +23,7 @@ export class SurveysService {
   ) {}
 
   async create(createSurveyDto: CreateSurveyDto) {
-    return this.prisma.survey.create({
+    return await this.prisma.survey.create({
       data: {
         patientId: createSurveyDto.patientId,
         answers: createSurveyDto.answers,
