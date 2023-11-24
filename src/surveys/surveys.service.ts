@@ -1,18 +1,24 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
 import { Question } from '@prisma/client';
 import { differenceInYears, format } from 'date-fns';
+import { RuleEntity } from 'src/questions/entities/rule.entity';
+import { utils, write } from 'xlsx';
 import { ParameterName } from '../common/enums/parameter.enum';
 import { ProcessingRule } from '../common/enums/rule.enum';
 import { truncateString } from '../common/utils/string.utils';
 import { EmailService } from '../mailer/email.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { QuestionEntity } from '../questions/entities/question.entity';
 import { QuestionsService } from '../questions/questions.service';
-import { utils, write } from 'xlsx';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { ResultDto } from './dto/result.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { AnswerEntity } from './entities/answer.entity';
+import {
+  CalculatedField,
+  OperatorType,
+  ScoreResult,
+} from './types/survey.types';
 
 @Injectable()
 export class SurveysService {
@@ -95,6 +101,7 @@ export class SurveysService {
     let isMan = 'M';
     let bmiEqualOrGreateThan = 0;
     let bmiScore = 0;
+    const resultArray: ScoreResult[] = [];
 
     // Get all questions
     const questions: QuestionEntity[] = []; // await this.prisma.question.findMany();
@@ -122,7 +129,7 @@ export class SurveysService {
     // Get survey results
     await this.prisma.survey
       .findUnique({ where: { surveyId: Id }, include: { patient: true } })
-      .then((survey: any) => {
+      .then(async (survey: any) => {
         //*******************************
 
         // Calculate age in years
@@ -183,9 +190,23 @@ export class SurveysService {
 
           if (!question) return;
 
-          if (this.isValueValid(selectedValue, question))
-            calculatedScore = calculatedScore + question.rule.scoreToAdd;
+          if (question.rule.singleResult) {
+            // Only add singleResult score
+            if (this.isValueValid(selectedValue, question.rule)) {
+              calculatedScore = calculatedScore + question.rule.scoreToAdd;
+            }
+          } else {
+            // Add result to the array
+            resultArray.push({
+              questionId: question.questionId,
+              isValid: this.isValueValid(selectedValue, question.rule),
+            });
+          }
         });
+
+        // Calc combines results
+        calculatedScore =
+          calculatedScore + (await this.calcualteCombinedFields(resultArray));
       });
 
     // Update Survey Score
@@ -197,29 +218,63 @@ export class SurveysService {
     return calculatedScore;
   };
 
-  isValueValid = (selectedValue: number, question: QuestionEntity) => {
+  isValueValid = (selectedValue: number, rule: RuleEntity) => {
     let isValid = false;
 
     // Run comparer
-    if (question.rule.processingRule == ProcessingRule.BETWEEN)
-      isValid =
-        selectedValue >= question.rule.valueA &&
-        selectedValue <= question.rule.valueB;
-    else if (question.rule.processingRule == ProcessingRule.GREATER_THAN)
-      isValid = selectedValue > question.rule.valueA;
-    else if (
-      question.rule.processingRule == ProcessingRule.EQUAL_OR_GREATER_THAN
-    )
-      isValid = selectedValue >= question.rule.valueA;
-    else if (question.rule.processingRule == ProcessingRule.LESS_THAN)
-      isValid = selectedValue < question.rule.valueA;
-    else if (question.rule.processingRule == ProcessingRule.EQUAL_OR_LESS_THAN)
-      isValid = selectedValue <= question.rule.valueA;
-    else if (ProcessingRule.EQUAL == question.rule.processingRule)
-      isValid = selectedValue == question.rule.valueA;
+    if (rule.processingRule == ProcessingRule.BETWEEN)
+      isValid = selectedValue >= rule.valueA && selectedValue <= rule.valueB;
+    else if (rule.processingRule == ProcessingRule.GREATER_THAN)
+      isValid = selectedValue > rule.valueA;
+    else if (rule.processingRule == ProcessingRule.EQUAL_OR_GREATER_THAN)
+      isValid = selectedValue >= rule.valueA;
+    else if (rule.processingRule == ProcessingRule.LESS_THAN)
+      isValid = selectedValue < rule.valueA;
+    else if (rule.processingRule == ProcessingRule.EQUAL_OR_LESS_THAN)
+      isValid = selectedValue <= rule.valueA;
+    else if (ProcessingRule.EQUAL == rule.processingRule)
+      isValid = selectedValue == rule.valueA;
 
     return isValid;
   };
+
+  async calcualteCombinedFields(scoreResult: ScoreResult[]): Promise<number> {
+    //Get Calculated Field to process
+    const calculatedFileds: CalculatedField[] = [];
+    let result = 0;
+
+    calculatedFileds.map((item) => {
+      const tempResults: boolean[] = [];
+
+      // Create an array of booleans for next step
+      item.questions.map((questionId) => {
+        const index = scoreResult.findIndex((v) => v.questionId == questionId);
+
+        if (index < 0) return;
+
+        // add result
+        tempResults.push(scoreResult[index].isValid);
+      });
+
+      let addToScore = false;
+      // Get result according to operator
+      if (item.operator == OperatorType.AND) {
+        addToScore = tempResults.reduce(
+          (accumulator, currentValue) => accumulator && currentValue,
+          true,
+        );
+      } else if (item.operator == OperatorType.OR) {
+        addToScore = tempResults.reduce(
+          (accumulator, currentValue) => accumulator || currentValue,
+          false,
+        );
+      }
+
+      if (addToScore) result = result + item.scoreToAdd;
+    });
+
+    return result;
+  }
 
   async getSurveysOnExcel(): Promise<StreamableFile> {
     //const ws = utils.aoa_to_sheet(['SheetJS'.split(''), [5, 4, 3, 3, 7, 9, 5]]);

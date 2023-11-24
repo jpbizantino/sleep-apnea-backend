@@ -53,10 +53,11 @@ model Parameter {
 }
 
 type Rule {
+  singleResult   Boolean @default(true)
   processingRule String
   valueA         Int
   valueB         Int
-  scoreToAdd     Int    @default(1)
+  scoreToAdd     Int     @default(1)
 }
 
 type Choice {
@@ -95,4 +96,11 @@ model Survey {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   patientId       String   @db.ObjectId
+}
+
+model CalculatedField {
+  calculatedFieldId String   @id @default(auto()) @map("_id") @db.ObjectId
+  questions         String[]
+  operator          String
+  scoreToAdd        Int
 }

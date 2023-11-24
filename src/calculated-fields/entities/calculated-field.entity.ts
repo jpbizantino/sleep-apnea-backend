@@ -1,21 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class RuleEntity {
-  constructor(partial: Partial<RuleEntity>) {
+export class CalculatedFieldEntity {
+  constructor(partial: Partial<CalculatedFieldEntity>) {
     Object.assign(this, partial);
   }
 
   @ApiProperty()
-  singleResult: boolean;
+  calculatedFieldId: string;
 
   @ApiProperty()
-  processingRule: string;
+  questions: string[];
 
   @ApiProperty()
-  valueA: number;
-
-  @ApiProperty()
-  valueB: number;
+  operator: string;
 
   @ApiProperty()
   scoreToAdd: number;

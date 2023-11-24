@@ -8,6 +8,7 @@ import { QuestionsModule } from './questions/questions.module';
 import { SurveysModule } from './surveys/surveys.module';
 import { PrismaModule } from 'nestjs-prisma';
 import { EmailModule } from './mailer/email.module';
+import { CalculatedFieldsModule } from './calculated-fields/calculated-fields.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { EmailModule } from './mailer/email.module';
     SurveysModule,
     PrismaModule,
     EmailModule,
+    CalculatedFieldsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

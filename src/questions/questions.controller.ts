@@ -69,6 +69,7 @@ export class QuestionsController {
     @Param('id') id: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
   ) {
+    console.log(id, updateQuestionDto);
     return new QuestionEntity(
       await this.questionsService.update(id, updateQuestionDto),
     );
@@ -80,5 +81,21 @@ export class QuestionsController {
   @ApiOkResponse({ type: QuestionEntity })
   async remove(@Param('id') id: string) {
     return new QuestionEntity(await this.questionsService.remove(id));
+  }
+
+  @Patch('/moveUp/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse()
+  async moveUp(@Param('id') id: string) {
+    await this.questionsService.questionUp(id);
+  }
+
+  @Patch('/moveDown/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse()
+  async moveDown(@Param('id') id: string) {
+    return await this.questionsService.questionDown(id);
   }
 }
