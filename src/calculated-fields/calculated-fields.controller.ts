@@ -28,8 +28,8 @@ export class CalculatedFieldsController {
   ) {}
 
   @Post()
-  //@UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: CalculatedFieldEntity })
   async create(@Body() createCalculatedFieldDto: CreateCalculatedFieldDto) {
     return new CalculatedFieldEntity(

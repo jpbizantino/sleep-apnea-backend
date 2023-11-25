@@ -68,17 +68,19 @@ type Choice {
 }
 
 model Question {
-  questionId   String   @id @default(auto()) @map("_id") @db.ObjectId
-  question     String
-  description  String
-  order        Int
-  questionType String
-  imageLink    String
-  choices      Choice[]
-  rule         Rule
-  active       Boolean
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  questionId                       String           @id @default(auto()) @map("_id") @db.ObjectId
+  question                         String
+  description                      String
+  order                            Int
+  questionType                     String
+  imageLink                        String
+  choices                          Choice[]
+  rule                             Rule
+  active                           Boolean
+  createdAt                        DateTime         @default(now())
+  updatedAt                        DateTime         @updatedAt
+  CalculatedField                  CalculatedField? @relation(fields: [calculatedFieldCalculatedFieldId], references: [calculatedFieldId])
+  calculatedFieldCalculatedFieldId String?          @db.ObjectId
 }
 
 type Answer {
@@ -99,8 +101,8 @@ model Survey {
 }
 
 model CalculatedField {
-  calculatedFieldId String   @id @default(auto()) @map("_id") @db.ObjectId
-  questions         String[]
+  calculatedFieldId String     @id @default(auto()) @map("_id") @db.ObjectId
+  questions         Question[]
   operator          String
   scoreToAdd        Int
 }

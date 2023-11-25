@@ -14,6 +14,7 @@ export class CalculatedFieldsService {
   }
 
   async findAll() {
+    console.log('sss');
     return await this.prisma.calculatedField.findMany();
   }
 

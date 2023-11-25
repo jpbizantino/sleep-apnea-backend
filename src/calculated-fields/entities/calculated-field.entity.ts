@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { QuestionEntity } from 'src/questions/entities/question.entity';
 
 export class CalculatedFieldEntity {
   constructor(partial: Partial<CalculatedFieldEntity>) {
@@ -9,7 +10,7 @@ export class CalculatedFieldEntity {
   calculatedFieldId: string;
 
   @ApiProperty()
-  questions: string[];
+  questions: QuestionEntity[];
 
   @ApiProperty()
   operator: string;
