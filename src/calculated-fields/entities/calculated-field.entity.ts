@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { QuestionEntity } from 'src/questions/entities/question.entity';
+import { CalculatedField } from '@prisma/client';
 
-export class CalculatedFieldEntity {
+export class CalculatedFieldEntity implements CalculatedField {
   constructor(partial: Partial<CalculatedFieldEntity>) {
     Object.assign(this, partial);
   }
+  questionIds: string[];
 
   @ApiProperty()
   calculatedFieldId: string;

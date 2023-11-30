@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ChoiceEntity } from './choice.entity';
 import { RuleEntity } from './rule.entity';
+import { Question } from '@prisma/client';
 
-export class QuestionEntity {
+export class QuestionEntity implements Question {
   constructor(partial: Partial<QuestionEntity>) {
     Object.assign(this, partial);
   }
+  calculatedFiledIds: string[];
 
   @ApiProperty()
   questionId: string;

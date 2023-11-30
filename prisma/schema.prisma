@@ -54,10 +54,10 @@ model Parameter {
 
 type Rule {
   singleResult   Boolean @default(true)
-  processingRule String
-  valueA         Int
-  valueB         Int
-  scoreToAdd     Int     @default(1)
+  processingRule String?
+  valueA         Int?
+  valueB         Int?
+  scoreToAdd     Int?     @default(1)
 }
 
 type Choice {
@@ -68,19 +68,19 @@ type Choice {
 }
 
 model Question {
-  questionId                       String           @id @default(auto()) @map("_id") @db.ObjectId
-  question                         String
-  description                      String
-  order                            Int
-  questionType                     String
-  imageLink                        String
-  choices                          Choice[]
-  rule                             Rule
-  active                           Boolean
-  createdAt                        DateTime         @default(now())
-  updatedAt                        DateTime         @updatedAt
-  CalculatedField                  CalculatedField? @relation(fields: [calculatedFieldCalculatedFieldId], references: [calculatedFieldId])
-  calculatedFieldCalculatedFieldId String?          @db.ObjectId
+  questionId         String            @id @default(auto()) @map("_id") @db.ObjectId
+  question           String
+  description        String
+  order              Int
+  questionType       String
+  imageLink          String
+  choices            Choice[]
+  rule               Rule
+  active             Boolean
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  calculatedField    CalculatedField[] @relation(fields: [calculatedFiledIds], references: [calculatedFieldId])
+  calculatedFiledIds String[]          @db.ObjectId
 }
 
 type Answer {
@@ -102,7 +102,8 @@ model Survey {
 
 model CalculatedField {
   calculatedFieldId String     @id @default(auto()) @map("_id") @db.ObjectId
-  questions         Question[]
+  questions         Question[] @relation(fields: [questionIds], references: [questionId])
+  questionIds       String[]   @db.ObjectId
   operator          String
   scoreToAdd        Int
 }

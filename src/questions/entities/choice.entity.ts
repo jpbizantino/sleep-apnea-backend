@@ -1,9 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Choice } from '@prisma/client';
 
-export class ChoiceEntity {
+export class ChoiceEntity implements Choice {
   constructor(partial: Partial<ChoiceEntity>) {
     Object.assign(this, partial);
   }
+  @ApiProperty()
+  choiceId: string;
 
   @ApiProperty()
   description: string;

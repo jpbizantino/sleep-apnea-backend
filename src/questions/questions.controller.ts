@@ -1,16 +1,16 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
-import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import { QuestionsService } from './questions.service';
 
 import {
   ApiBearerAuth,
@@ -18,8 +18,8 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { QuestionEntity } from './entities/question.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { QuestionEntity } from './entities/question.entity';
 
 @Controller('questions')
 @ApiTags('questions')
@@ -45,11 +45,19 @@ export class QuestionsController {
     return questions.map((question) => new QuestionEntity(question));
   }
 
+  @Get('/singleResults')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: QuestionEntity, isArray: true })
+  async findAllSingleresults() {
+    return this.questionsService.findAllSingleResults();
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: QuestionEntity, isArray: true })
-  asyncfindAll() {
+  async findAll() {
     return this.questionsService.findAll();
   }
 
@@ -69,7 +77,6 @@ export class QuestionsController {
     @Param('id') id: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
   ) {
-    console.log(id, updateQuestionDto);
     return new QuestionEntity(
       await this.questionsService.update(id, updateQuestionDto),
     );

@@ -8,26 +8,46 @@ export class CalculatedFieldsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCalculatedFieldDto: CreateCalculatedFieldDto) {
+    const questionsIds: string[] = [];
+
+    createCalculatedFieldDto.questions.map((q) =>
+      questionsIds.push(q.questionId),
+    );
+
     return await this.prisma.calculatedField.create({
-      data: createCalculatedFieldDto,
+      data: {
+        operator: createCalculatedFieldDto.operator,
+        scoreToAdd: createCalculatedFieldDto.scoreToAdd,
+        questionIds: questionsIds,
+      },
     });
   }
 
   async findAll() {
-    console.log('sss');
     return await this.prisma.calculatedField.findMany();
   }
 
   async findOne(id: string) {
-    return await this.prisma.calculatedField.findUnique({
+    const pepe = await this.prisma.calculatedField.findUnique({
       where: { calculatedFieldId: id },
+      include: { questions: true },
     });
+
+    return pepe;
   }
 
   async update(id: string, updatePatientDto: UpdateCalculatedFieldDto) {
+    const questionsIds: string[] = [];
+
+    updatePatientDto.questions.map((q) => questionsIds.push(q.questionId));
+
     return await this.prisma.calculatedField.update({
       where: { calculatedFieldId: id },
-      data: updatePatientDto,
+      data: {
+        operator: updatePatientDto.operator,
+        scoreToAdd: updatePatientDto.scoreToAdd,
+        questionIds: questionsIds,
+      },
     });
   }
 

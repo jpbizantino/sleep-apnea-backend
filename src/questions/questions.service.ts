@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import { QuestionEntity } from './entities/question.entity';
 
 @Injectable()
@@ -21,6 +21,14 @@ export class QuestionsService {
 
   async findAll() {
     return await this.prisma.question.findMany({ orderBy: { order: 'asc' } });
+  }
+
+  async findAllSingleResults() {
+    const result = await this.prisma.question.findMany({
+      orderBy: { order: 'asc' },
+    });
+
+    return result.filter((p) => p.rule.singleResult == false);
   }
 
   async findAllSurvey() {

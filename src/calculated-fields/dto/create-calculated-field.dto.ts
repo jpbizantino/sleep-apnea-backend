@@ -1,14 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber } from 'class-validator';
 import { QuestionEntity } from 'src/questions/entities/question.entity';
 
 export class CreateCalculatedFieldDto {
   @IsNotEmpty()
   @ApiProperty()
-  calculatedFieldId: string;
-
-  @IsNotEmpty()
-  @ApiProperty()
+  @IsArray()
   questions: QuestionEntity[];
 
   @IsNotEmpty()
