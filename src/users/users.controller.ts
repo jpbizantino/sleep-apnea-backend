@@ -30,7 +30,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() createUserDto: CreateUserDto) {
-    return new UserEntity(await this.usersService.create(createUserDto));
+    return await this.usersService.create(createUserDto);
   }
 
   @Get()
@@ -38,9 +38,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll() {
-    const users = await this.usersService.findAll();
-
-    return users.map((user) => new UserEntity(user));
+    return await this.usersService.findAll();
   }
 
   @Get(':userId')
@@ -48,7 +46,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('userId') userId: string) {
-    return new UserEntity(await this.usersService.findOne(userId));
+    return await this.usersService.findOne(userId);
   }
 
   @Patch(':userId')
@@ -59,9 +57,7 @@ export class UsersController {
     @Param('userId') userId: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return new UserEntity(
-      await this.usersService.update(userId, updateUserDto),
-    );
+    return await this.usersService.update(userId, updateUserDto);
   }
 
   @Delete(':userId')
@@ -69,6 +65,6 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async remove(@Param('userId') userId: string) {
-    return new UserEntity(await this.usersService.remove(userId));
+    return await this.usersService.remove(userId);
   }
 }

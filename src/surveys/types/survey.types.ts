@@ -3,6 +3,12 @@ export interface ScoreResult {
   isValid: boolean;
 }
 
+// For storing algortihm results
+export interface SurveyResultSumary {
+  columnName: string;
+  columnValue: string;
+}
+
 export enum OperatorType {
   AND = 'AND',
   OR = 'OR',

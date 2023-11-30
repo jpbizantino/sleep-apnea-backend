@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { UserEntity } from './entities/user.entity';
 
 export const roundsOfHashing = 10;
 @Injectable()
@@ -17,19 +18,24 @@ export class UsersService {
 
     createUserDto.password = hashedPassword;
 
-    return this.prisma.user.create({
-      data: createUserDto,
-    });
+    return new UserEntity(
+      await this.prisma.user.create({
+        data: createUserDto,
+      }),
+    );
   }
 
   async findAll() {
-    return await this.prisma.user.findMany();
+    const list = await this.prisma.user.findMany({});
+    return list.map((item) => new UserEntity(item));
   }
 
   async findOne(userId: string) {
-    return await this.prisma.user.findUnique({
-      where: { userId: userId },
-    });
+    return new UserEntity(
+      await this.prisma.user.findUnique({
+        where: { userId: userId },
+      }),
+    );
   }
 
   async update(userId: string, updateUserDto: UpdateUserDto) {
@@ -40,13 +46,17 @@ export class UsersService {
       );
     }
 
-    return this.prisma.user.update({
-      where: { userId: userId },
-      data: updateUserDto,
-    });
+    return new UserEntity(
+      await this.prisma.user.update({
+        where: { userId: userId },
+        data: updateUserDto,
+      }),
+    );
   }
 
-  remove(userid: string) {
-    return this.prisma.user.delete({ where: { userId: userid } });
+  async remove(userid: string) {
+    return new UserEntity(
+      await this.prisma.user.delete({ where: { userId: userid } }),
+    );
   }
 }

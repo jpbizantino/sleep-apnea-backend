@@ -10,6 +10,10 @@ export class CreateCalculatedFieldDto {
 
   @IsNotEmpty()
   @ApiProperty()
+  name: string;
+
+  @IsNotEmpty()
+  @ApiProperty()
   operator: string;
 
   @IsNotEmpty()

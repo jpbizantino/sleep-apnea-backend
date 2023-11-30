@@ -16,6 +16,7 @@ export class CalculatedFieldsService {
 
     return await this.prisma.calculatedField.create({
       data: {
+        name: createCalculatedFieldDto.name,
         operator: createCalculatedFieldDto.operator,
         scoreToAdd: createCalculatedFieldDto.scoreToAdd,
         questionIds: questionsIds,
@@ -28,12 +29,10 @@ export class CalculatedFieldsService {
   }
 
   async findOne(id: string) {
-    const pepe = await this.prisma.calculatedField.findUnique({
+    return await this.prisma.calculatedField.findUnique({
       where: { calculatedFieldId: id },
       include: { questions: true },
     });
-
-    return pepe;
   }
 
   async update(id: string, updatePatientDto: UpdateCalculatedFieldDto) {
@@ -44,6 +43,7 @@ export class CalculatedFieldsService {
     return await this.prisma.calculatedField.update({
       where: { calculatedFieldId: id },
       data: {
+        name: updatePatientDto.name,
         operator: updatePatientDto.operator,
         scoreToAdd: updatePatientDto.scoreToAdd,
         questionIds: questionsIds,

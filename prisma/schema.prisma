@@ -57,7 +57,7 @@ type Rule {
   processingRule String?
   valueA         Int?
   valueB         Int?
-  scoreToAdd     Int?     @default(1)
+  scoreToAdd     Int?    @default(1)
 }
 
 type Choice {
@@ -90,18 +90,25 @@ type Answer {
   selectedText  String
 }
 
+type SurveyResultSumary {
+  columnName  String
+  columnValue String
+}
+
 model Survey {
-  surveyId        String   @id @default(auto()) @map("_id") @db.ObjectId
-  patient         Patient  @relation(fields: [patientId], references: [patientId])
-  answers         Answer[]
-  calculatedScore Int?     @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  patientId       String   @db.ObjectId
+  surveyId           String               @id @default(auto()) @map("_id") @db.ObjectId
+  patient            Patient              @relation(fields: [patientId], references: [patientId])
+  answers            Answer[]
+  calculatedScore    Int?                 @default(0)
+  surveyResultSumary SurveyResultSumary[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  patientId          String               @db.ObjectId
 }
 
 model CalculatedField {
   calculatedFieldId String     @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
   questions         Question[] @relation(fields: [questionIds], references: [questionId])
   questionIds       String[]   @db.ObjectId
   operator          String

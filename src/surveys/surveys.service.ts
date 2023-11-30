@@ -15,9 +15,9 @@ import { ResultDto } from './dto/result.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { AnswerEntity } from './entities/answer.entity';
 import {
-  CalculatedField,
   OperatorType,
   ScoreResult,
+  SurveyResultSumary,
 } from './types/survey.types';
 
 @Injectable()
@@ -102,9 +102,13 @@ export class SurveysService {
     let bmiEqualOrGreateThan = 0;
     let bmiScore = 0;
     const resultArray: ScoreResult[] = [];
+    const surveyResultSumary: SurveyResultSumary[] = [];
 
     // Get all questions
-    const questions: QuestionEntity[] = []; // await this.prisma.question.findMany();
+    // TODO:   Questions should come from the survey so dataset will not change
+    const questions: QuestionEntity[] = await this.prisma.question.findMany({
+      where: { active: true },
+    });
 
     // Get Age for desition
     await this.prisma.parameter
@@ -138,17 +142,23 @@ export class SurveysService {
           survey.patient.dateOfBirth,
         );
 
-        // Score for Age
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'Edad',
+          columnValue: ageInYears.toString(),
+        });
 
-        console.log(
-          'ageInYears > ageGreaterThan',
-          ageInYears,
-          '   ',
-          ageGreaterThan,
-        );
+        // Score for Age
         if (ageInYears > ageGreaterThan) {
           calculatedScore++;
         }
+
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'Score Edad',
+          columnValue: calculatedScore.toString(),
+        });
+
         //*******************************
 
         console.log(
@@ -160,6 +170,18 @@ export class SurveysService {
         // Score is Man
         if (survey.patient.gender == isMan) calculatedScore++;
 
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'Género',
+          columnValue: isMan ? 'M' : 'F',
+        });
+
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'Score Género',
+          columnValue: isMan ? '1' : '0',
+        });
+
         //*******************************
 
         //  Calculacte BMI
@@ -167,17 +189,35 @@ export class SurveysService {
         const bmi =
           survey.patient.weight / Math.pow(survey.patient.height / 100, 2);
 
-        console.log(
-          '(bmi , bmiEqualOrGreateThan',
-          bmi,
-          '  ',
-          bmiEqualOrGreateThan,
-        );
-
         if (bmi >= bmiEqualOrGreateThan)
           calculatedScore = calculatedScore + bmiScore;
 
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'Altura',
+          columnValue: survey.patient.height.toString(),
+        });
+
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'Peso (Kg)',
+          columnValue: survey.patient.weight.toString(),
+        });
+
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'IMC',
+          columnValue: bmi.toString(),
+        });
+
+        // Add value to final result sumary
+        surveyResultSumary.push({
+          columnName: 'Score IMC',
+          columnValue: bmi >= bmiEqualOrGreateThan ? bmiScore.toString() : '0',
+        });
         //*******************************
+
+        console.log('questions ', questions);
 
         survey.answers.forEach((item: AnswerEntity) => {
           // Cast selected values
@@ -190,29 +230,52 @@ export class SurveysService {
 
           if (!question) return;
 
+          const isValid = this.isValueValid(selectedValue, question.rule);
+
           if (question.rule.singleResult) {
             // Only add singleResult score
-            if (this.isValueValid(selectedValue, question.rule)) {
+            if (isValid) {
               calculatedScore = calculatedScore + question.rule.scoreToAdd;
             }
           } else {
             // Add result to the array
             resultArray.push({
               questionId: question.questionId,
-              isValid: this.isValueValid(selectedValue, question.rule),
+              isValid: isValid,
             });
           }
+
+          // Add value to final result sumary
+          surveyResultSumary.push({
+            columnName: question.question,
+            columnValue: selectedValue.toString(),
+          });
+
+          // Add value to final result sumary
+          surveyResultSumary.push({
+            columnName: `Score ${question.question}`,
+            columnValue: isValid ? question.rule.scoreToAdd.toString() : '0',
+          });
         });
 
+        const totalCombinedFields = await this.calculateCombinedFields(
+          resultArray,
+          surveyResultSumary,
+        );
+
         // Calc combines results
-        calculatedScore =
-          calculatedScore + (await this.calcualteCombinedFields(resultArray));
+        calculatedScore = calculatedScore + totalCombinedFields;
       });
+
+    console.log(surveyResultSumary);
 
     // Update Survey Score
     await this.prisma.survey.update({
       where: { surveyId: Id },
-      data: { calculatedScore: calculatedScore },
+      data: {
+        calculatedScore: calculatedScore,
+        surveyResultSumary: surveyResultSumary,
+      },
     });
 
     return calculatedScore;
@@ -238,16 +301,28 @@ export class SurveysService {
     return isValid;
   };
 
-  async calcualteCombinedFields(scoreResult: ScoreResult[]): Promise<number> {
+  async calculateCombinedFields(
+    scoreResult: ScoreResult[],
+    surveyResultSumary: SurveyResultSumary[],
+  ): Promise<number> {
+    // Get Calculated Field to process
+    const calculatedFileds = await this.prisma.calculatedField.findMany();
+
     //Get Calculated Field to process
-    const calculatedFileds: CalculatedField[] = [];
+    // const calculatedFileds: CalculatedField[] = [];
     let result = 0;
 
     calculatedFileds.map((item) => {
       const tempResults: boolean[] = [];
 
+      // Add value to final result sumary
+      surveyResultSumary.push({
+        columnName: item.name,
+        columnValue: item.operator,
+      });
+
       // Create an array of booleans for next step
-      item.questions.map((questionId) => {
+      item.questionIds.map((questionId) => {
         const index = scoreResult.findIndex((v) => v.questionId == questionId);
 
         if (index < 0) return;
@@ -271,15 +346,18 @@ export class SurveysService {
       }
 
       if (addToScore) result = result + item.scoreToAdd;
+
+      // Add value to final result sumary
+      surveyResultSumary.push({
+        columnName: `Score ${item.name}`,
+        columnValue: addToScore ? item.scoreToAdd.toString() : '0',
+      });
     });
 
     return result;
   }
 
   async getSurveysOnExcel(): Promise<StreamableFile> {
-    //const ws = utils.aoa_to_sheet(['SheetJS'.split(''), [5, 4, 3, 3, 7, 9, 5]]);
-    //const data = await this.findAll();
-
     const data = await this.transformDataForExcel();
     const ws = utils.json_to_sheet(data);
 
@@ -331,17 +409,9 @@ export class SurveysService {
       // Set Row
       const row = {};
 
-      survey.answers.map((answer) => {
-        const question = JSON.parse(answer.jsonQuestion) as Question;
-        // if (!result[answer.questionId]) result[answer.questionId] = [];
-        // result[answer.questionId].push(answer.selectedValue);
-
-        // if (!row[answer.questionId])
-        //   row[question.questionId] = answer.selectedValue;
-
-        const column = truncateString(question.question, 30);
-
-        if (!row[column]) row[column] = answer.selectedValue;
+      survey.surveyResultSumary.map((answer) => {
+        const column = truncateString(answer.columnName, 100);
+        if (!row[column]) row[column] = answer.columnValue;
       });
 
       result.push({
@@ -352,7 +422,6 @@ export class SurveysService {
       });
     });
 
-    console.log(result);
     return result;
   }
 

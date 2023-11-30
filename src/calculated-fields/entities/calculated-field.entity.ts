@@ -9,6 +9,9 @@ export class CalculatedFieldEntity implements CalculatedField {
   questionIds: string[];
 
   @ApiProperty()
+  name: string;
+
+  @ApiProperty()
   calculatedFieldId: string;
 
   @ApiProperty()
