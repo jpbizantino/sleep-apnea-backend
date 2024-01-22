@@ -53,6 +53,14 @@ export class QuestionsController {
     return this.questionsService.findAllSingleResults();
   }
 
+  @Get('/groupedScore')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: QuestionEntity, isArray: true })
+  async findAllGroupScore() {
+    return this.questionsService.findAllGroupScore();
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

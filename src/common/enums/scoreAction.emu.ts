@@ -1,0 +1,5 @@
+export enum scoreActionEnum {
+  ADD_TO_FINAL_SCORE = 'ADD_TO_FINAL_SCORE',
+  COMBINE_SCORE = 'COMBINE_SCORE',
+  GROUP_SCORE = 'GROUP_SCORE',
+}

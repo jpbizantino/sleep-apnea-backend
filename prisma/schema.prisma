@@ -53,8 +53,8 @@ model Parameter {
 }
 
 type Rule {
-  singleResult   Boolean @default(true)
   processingRule String?
+  scoreAction    String?
   valueA         Int?
   valueB         Int?
   scoreToAdd     Int?    @default(1)
@@ -81,6 +81,8 @@ model Question {
   updatedAt          DateTime          @updatedAt
   calculatedField    CalculatedField[] @relation(fields: [calculatedFiledIds], references: [calculatedFieldId])
   calculatedFiledIds String[]          @db.ObjectId
+  combinedField      CombinedField[]   @relation(fields: [combinedFiledIds], references: [combinedFieldId])
+  combinedFiledIds   String[]          @db.ObjectId
 }
 
 type Answer {
@@ -113,4 +115,12 @@ model CalculatedField {
   questionIds       String[]   @db.ObjectId
   operator          String
   scoreToAdd        Int
+}
+
+model CombinedField {
+  combinedFieldId String     @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  questions       Question[] @relation(fields: [questionIds], references: [questionId])
+  questionIds     String[]   @db.ObjectId
+  rule            Rule
 }

@@ -1,19 +1,20 @@
 import { IsEnum, IsNotEmpty, IsNumber, ValidateIf } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ProcessingRule } from '../../common/enums/rule.enum';
+import { ProcessingRuleEnum } from '../../common/enums/rule.enum';
+import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
 
 export class RuleDto {
   @IsNotEmpty()
-  @IsEnum(ProcessingRule)
+  @IsEnum(ProcessingRuleEnum)
   @ApiProperty()
-  processingRule: ProcessingRule;
+  processingRule: ProcessingRuleEnum;
 
   @IsNotEmpty()
   @IsNumber()
   @ApiProperty()
   valueA: number;
 
-  @ValidateIf((o) => [ProcessingRule.BETWEEN].some(o.questionType))
+  @ValidateIf((o) => [ProcessingRuleEnum.BETWEEN].some(o.questionType))
   @IsNumber()
   @ApiProperty()
   valueB: number;
@@ -22,4 +23,9 @@ export class RuleDto {
   @IsNumber()
   @ApiProperty()
   scoreToAdd: number;
+
+  @IsNotEmpty()
+  @IsEnum(scoreActionEnum)
+  @ApiProperty()
+  scoreAction: string;
 }

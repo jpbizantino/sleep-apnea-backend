@@ -13,7 +13,7 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { QuestionType } from '../../common/enums/question.enum';
+import { QuestionTypeEnum } from '../../common/enums/question.enum';
 import { ChoiceDto } from './choice.dto';
 import { RuleDto } from './rule.dto';
 
@@ -27,9 +27,9 @@ export class CreateQuestionDto {
   description: string;
 
   @IsNotEmpty()
-  @IsEnum(QuestionType)
+  @IsEnum(QuestionTypeEnum)
   @ApiProperty()
-  questionType: QuestionType;
+  questionType: QuestionTypeEnum;
 
   @IsNotEmpty()
   @IsNumber()
@@ -37,7 +37,7 @@ export class CreateQuestionDto {
   @ApiProperty()
   order: number;
 
-  @ValidateIf((o) => o.questionType === QuestionType.CHOICE)
+  @ValidateIf((o) => o.questionType === QuestionTypeEnum.CHOICE)
   @ArrayNotEmpty()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })

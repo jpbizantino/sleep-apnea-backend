@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QuestionEntity } from './entities/question.entity';
+import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
 
 @Injectable()
 export class QuestionsService {
@@ -28,7 +29,19 @@ export class QuestionsService {
       orderBy: { order: 'asc' },
     });
 
-    return result.filter((p) => p.rule.singleResult == false);
+    return result.filter(
+      (p) => p.rule.scoreAction == scoreActionEnum.ADD_TO_FINAL_SCORE,
+    );
+  }
+
+  async findAllGroupScore() {
+    const result = await this.prisma.question.findMany({
+      orderBy: { order: 'asc' },
+    });
+
+    return result.filter(
+      (p) => p.rule.scoreAction == scoreActionEnum.GROUP_SCORE,
+    );
   }
 
   async findAllSurvey() {

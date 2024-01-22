@@ -5,8 +5,14 @@ export class RuleEntity {
     Object.assign(this, partial);
   }
 
+  // @ApiProperty()
+  // singleResult: boolean;
+
+  // @ApiProperty()
+  // groupScore: boolean;
+
   @ApiProperty()
-  singleResult: boolean;
+  scoreAction: string;
 
   @ApiProperty()
   processingRule: string;

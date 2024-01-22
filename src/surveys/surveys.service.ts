@@ -4,7 +4,7 @@ import { differenceInYears, format } from 'date-fns';
 import { RuleEntity } from 'src/questions/entities/rule.entity';
 import { utils, write } from 'xlsx';
 import { ParameterName } from '../common/enums/parameter.enum';
-import { ProcessingRule } from '../common/enums/rule.enum';
+import { ProcessingRuleEnum } from '../common/enums/rule.enum';
 import { truncateString } from '../common/utils/string.utils';
 import { EmailService } from '../mailer/email.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,6 +19,7 @@ import {
   ScoreResult,
   SurveyResultSumary,
 } from './types/survey.types';
+import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
 
 @Injectable()
 export class SurveysService {
@@ -232,7 +233,7 @@ export class SurveysService {
 
           const isValid = this.isValueValid(selectedValue, question.rule);
 
-          if (question.rule.singleResult) {
+          if (question.rule.scoreAction == scoreActionEnum.ADD_TO_FINAL_SCORE) {
             // Only add singleResult score
             if (isValid) {
               calculatedScore = calculatedScore + question.rule.scoreToAdd;
@@ -285,17 +286,17 @@ export class SurveysService {
     let isValid = false;
 
     // Run comparer
-    if (rule.processingRule == ProcessingRule.BETWEEN)
+    if (rule.processingRule == ProcessingRuleEnum.BETWEEN)
       isValid = selectedValue >= rule.valueA && selectedValue <= rule.valueB;
-    else if (rule.processingRule == ProcessingRule.GREATER_THAN)
+    else if (rule.processingRule == ProcessingRuleEnum.GREATER_THAN)
       isValid = selectedValue > rule.valueA;
-    else if (rule.processingRule == ProcessingRule.EQUAL_OR_GREATER_THAN)
+    else if (rule.processingRule == ProcessingRuleEnum.EQUAL_OR_GREATER_THAN)
       isValid = selectedValue >= rule.valueA;
-    else if (rule.processingRule == ProcessingRule.LESS_THAN)
+    else if (rule.processingRule == ProcessingRuleEnum.LESS_THAN)
       isValid = selectedValue < rule.valueA;
-    else if (rule.processingRule == ProcessingRule.EQUAL_OR_LESS_THAN)
+    else if (rule.processingRule == ProcessingRuleEnum.EQUAL_OR_LESS_THAN)
       isValid = selectedValue <= rule.valueA;
-    else if (ProcessingRule.EQUAL == rule.processingRule)
+    else if (ProcessingRuleEnum.EQUAL == rule.processingRule)
       isValid = selectedValue == rule.valueA;
 
     return isValid;

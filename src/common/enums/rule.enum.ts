@@ -1,4 +1,4 @@
-export enum ProcessingRule {
+export enum ProcessingRuleEnum {
   // DATA_AS_RECEIVED = 'DATA_AS_RECEIVED',
   LESS_THAN = 'LESS_THAN',
   EQUAL_OR_LESS_THAN = 'EQUAL_OR_LESS_THAN',
