@@ -259,13 +259,13 @@ export class SurveysService {
           });
         });
 
-        const totalCombinedFields = await this.calculateCombinedFields(
+        const totalGroupedFields = await this.calculateGroupedFields(
           resultArray,
           surveyResultSumary,
         );
 
         // Calc combines results
-        calculatedScore = calculatedScore + totalCombinedFields;
+        calculatedScore = calculatedScore + totalGroupedFields;
       });
 
     console.log(surveyResultSumary);
@@ -302,7 +302,7 @@ export class SurveysService {
     return isValid;
   };
 
-  async calculateCombinedFields(
+  async calculateGroupedFields(
     scoreResult: ScoreResult[],
     surveyResultSumary: SurveyResultSumary[],
   ): Promise<number> {

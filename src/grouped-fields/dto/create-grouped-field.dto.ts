@@ -4,7 +4,7 @@ import { IsArray, IsNotEmpty, IsNotEmptyObject } from 'class-validator';
 import { RuleDto } from 'src/questions/dto/rule.dto';
 import { QuestionEntity } from 'src/questions/entities/question.entity';
 
-export class CreateCombinedFieldDto {
+export class CreateGroupedFieldDto {
   @IsNotEmpty()
   @ApiProperty()
   name: string;

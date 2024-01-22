@@ -9,7 +9,7 @@ import { SurveysModule } from './surveys/surveys.module';
 import { PrismaModule } from 'nestjs-prisma';
 import { EmailModule } from './mailer/email.module';
 import { CalculatedFieldsModule } from './calculated-fields/calculated-fields.module';
-import { CombinedFieldsModule } from './combined-fields/combined-field.module';
+import { GroupedFieldsModule } from './grouped-fields/grouped-field.module';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { CombinedFieldsModule } from './combined-fields/combined-field.module';
     PrismaModule,
     EmailModule,
     CalculatedFieldsModule,
-    CombinedFieldsModule,
+    GroupedFieldsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

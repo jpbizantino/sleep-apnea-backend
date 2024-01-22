@@ -9,8 +9,7 @@ export class QuestionEntity implements Question {
     Object.assign(this, partial);
   }
 
-  @Exclude()
-  combinedFiledIds: string[];
+  @Exclude() groupedFiledIds: string[];
 
   @Exclude()
   calculatedFiledIds: string[];

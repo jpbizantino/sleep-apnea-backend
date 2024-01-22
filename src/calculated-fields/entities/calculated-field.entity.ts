@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { QuestionEntity } from 'src/questions/entities/question.entity';
 import { CalculatedField } from '@prisma/client';
+import { GroupedFieldEntity } from 'src/grouped-fields/entities/grouped-field.entity';
 
 export class CalculatedFieldEntity implements CalculatedField {
   constructor(partial: Partial<CalculatedFieldEntity>) {
     Object.assign(this, partial);
   }
+  groupedFieldIds: string[];
   questionIds: string[];
 
   @ApiProperty()
@@ -16,6 +18,9 @@ export class CalculatedFieldEntity implements CalculatedField {
 
   @ApiProperty()
   questions: QuestionEntity[];
+
+  @ApiProperty()
+  groupedFields: Partial<GroupedFieldEntity>[];
 
   @ApiProperty()
   operator: string;

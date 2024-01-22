@@ -19,7 +19,12 @@ export class CalculatedFieldsService {
         name: createCalculatedFieldDto.name,
         operator: createCalculatedFieldDto.operator,
         scoreToAdd: createCalculatedFieldDto.scoreToAdd,
-        questionIds: questionsIds,
+        questionIds: createCalculatedFieldDto.questions.map(
+          (p) => p.questionId,
+        ),
+        groupedFieldIds: createCalculatedFieldDto.groupedFields.map(
+          (p) => p.groupedFieldId,
+        ),
       },
     });
   }
@@ -31,7 +36,10 @@ export class CalculatedFieldsService {
   async findOne(id: string) {
     return await this.prisma.calculatedField.findUnique({
       where: { calculatedFieldId: id },
-      include: { questions: true },
+      include: {
+        questions: true,
+        groupedFields: { include: { calculatedField: true } },
+      },
     });
   }
 
@@ -46,7 +54,10 @@ export class CalculatedFieldsService {
         name: updatePatientDto.name,
         operator: updatePatientDto.operator,
         scoreToAdd: updatePatientDto.scoreToAdd,
-        questionIds: questionsIds,
+        questionIds: updatePatientDto.questions.map((p) => p.questionId),
+        groupedFieldIds: updatePatientDto.groupedFields.map(
+          (p) => p.groupedFieldId,
+        ),
       },
     });
   }
