@@ -1,6 +1,16 @@
-export interface ScoreResult {
+export interface CombinedScoreResult {
   questionId: string;
   isValid: boolean;
+}
+
+export interface GroupedFieldResult {
+  groupedFieldId: string;
+  isValid: boolean;
+}
+
+export interface QuestionResult {
+  questionId: string;
+  score: number;
 }
 
 // For storing algortihm results

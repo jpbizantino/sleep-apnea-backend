@@ -1,5 +1,4 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
-import { Question } from '@prisma/client';
 import { differenceInYears, format } from 'date-fns';
 import { RuleEntity } from 'src/questions/entities/rule.entity';
 import { utils, write } from 'xlsx';
@@ -16,10 +15,13 @@ import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { AnswerEntity } from './entities/answer.entity';
 import {
   OperatorType,
-  ScoreResult,
+  CombinedScoreResult,
   SurveyResultSumary,
+  QuestionResult,
+  GroupedFieldResult,
 } from './types/survey.types';
 import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
+import { GroupedFieldEntity } from 'src/grouped-fields/entities/grouped-field.entity';
 
 @Injectable()
 export class SurveysService {
@@ -96,20 +98,15 @@ export class SurveysService {
       };
   };
 
-  runAlgorithm = async (Id: string): Promise<number> => {
-    let calculatedScore = 0;
+  calculatePatientConstants = async (
+    survey: any,
+    surveyResultSumary: SurveyResultSumary[],
+    calculatedScore: number,
+  ) => {
     let ageGreaterThan = 0;
     let isMan = 'M';
     let bmiEqualOrGreateThan = 0;
     let bmiScore = 0;
-    const resultArray: ScoreResult[] = [];
-    const surveyResultSumary: SurveyResultSumary[] = [];
-
-    // Get all questions
-    // TODO:   Questions should come from the survey so dataset will not change
-    const questions: QuestionEntity[] = await this.prisma.question.findMany({
-      where: { active: true },
-    });
 
     // Get Age for desition
     await this.prisma.parameter
@@ -131,94 +128,118 @@ export class SurveysService {
       .findUnique({ where: { name: ParameterName.BMI_SCORE } })
       .then((result) => (bmiScore = parseInt(result.value)));
 
+    // Calculate age in years
+    const ageInYears = differenceInYears(
+      survey.createdAt,
+      survey.patient.dateOfBirth,
+    );
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'Edad',
+      columnValue: ageInYears.toString(),
+    });
+
+    // Score for Age
+    if (ageInYears > ageGreaterThan) {
+      calculatedScore++;
+    }
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'Score Edad',
+      columnValue: calculatedScore.toString(),
+    });
+
+    //*******************************
+
+    console.log(
+      'survey.patient.gender , isMan',
+      survey.patient.gender,
+      '  ',
+      isMan,
+    );
+    // Score is Man
+    if (survey.patient.gender == isMan) calculatedScore++;
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'Género',
+      columnValue: isMan ? 'M' : 'F',
+    });
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'Score Género',
+      columnValue: isMan ? '1' : '0',
+    });
+
+    //*******************************
+
+    //  Calculacte BMI
+
+    const bmi =
+      survey.patient.weight / Math.pow(survey.patient.height / 100, 2);
+
+    if (bmi >= bmiEqualOrGreateThan)
+      calculatedScore = calculatedScore + bmiScore;
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'Altura',
+      columnValue: survey.patient.height.toString(),
+    });
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'Peso (Kg)',
+      columnValue: survey.patient.weight.toString(),
+    });
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'IMC',
+      columnValue: bmi.toString(),
+    });
+
+    // Add value to final result sumary
+    surveyResultSumary.push({
+      columnName: 'Score IMC',
+      columnValue: bmi >= bmiEqualOrGreateThan ? bmiScore.toString() : '0',
+    });
+    //*******************************
+  };
+
+  runAlgorithm = async (Id: string): Promise<number> => {
+    let calculatedScore = 0;
+
+    const combinedScoreResultArray: CombinedScoreResult[] = [];
+    const questionResultArray: QuestionResult[] = [];
+    const surveyResultSumary: SurveyResultSumary[] = [];
+    const groupedFieldResultArray: GroupedFieldResult[] = [];
+
+    // Get all questions
+    // TODO:   Questions should come from the survey so dataset will not change
+    const questions: QuestionEntity[] = await this.prisma.question.findMany({
+      where: { active: true },
+    });
+
     // Get survey results
     await this.prisma.survey
       .findUnique({ where: { surveyId: Id }, include: { patient: true } })
       .then(async (survey: any) => {
         //*******************************
 
-        // Calculate age in years
-        const ageInYears = differenceInYears(
-          survey.createdAt,
-          survey.patient.dateOfBirth,
+        console.log('Calculate Patient Constants');
+
+        // Calculate Patient Constants
+        await this.calculatePatientConstants(
+          survey,
+          surveyResultSumary,
+          calculatedScore,
         );
 
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'Edad',
-          columnValue: ageInYears.toString(),
-        });
-
-        // Score for Age
-        if (ageInYears > ageGreaterThan) {
-          calculatedScore++;
-        }
-
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'Score Edad',
-          columnValue: calculatedScore.toString(),
-        });
-
-        //*******************************
-
-        console.log(
-          'survey.patient.gender , isMan',
-          survey.patient.gender,
-          '  ',
-          isMan,
-        );
-        // Score is Man
-        if (survey.patient.gender == isMan) calculatedScore++;
-
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'Género',
-          columnValue: isMan ? 'M' : 'F',
-        });
-
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'Score Género',
-          columnValue: isMan ? '1' : '0',
-        });
-
-        //*******************************
-
-        //  Calculacte BMI
-
-        const bmi =
-          survey.patient.weight / Math.pow(survey.patient.height / 100, 2);
-
-        if (bmi >= bmiEqualOrGreateThan)
-          calculatedScore = calculatedScore + bmiScore;
-
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'Altura',
-          columnValue: survey.patient.height.toString(),
-        });
-
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'Peso (Kg)',
-          columnValue: survey.patient.weight.toString(),
-        });
-
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'IMC',
-          columnValue: bmi.toString(),
-        });
-
-        // Add value to final result sumary
-        surveyResultSumary.push({
-          columnName: 'Score IMC',
-          columnValue: bmi >= bmiEqualOrGreateThan ? bmiScore.toString() : '0',
-        });
-        //*******************************
-
-        console.log('questions ', questions);
+        console.log('Questions ', questions);
 
         survey.answers.forEach((item: AnswerEntity) => {
           // Cast selected values
@@ -233,14 +254,26 @@ export class SurveysService {
 
           const isValid = this.isValueValid(selectedValue, question.rule);
 
+          // Add Score to the final counter
           if (question.rule.scoreAction == scoreActionEnum.ADD_TO_FINAL_SCORE) {
             // Only add singleResult score
             if (isValid) {
               calculatedScore = calculatedScore + question.rule.scoreToAdd;
             }
-          } else {
+          }
+
+          // Add Score to the intermediate array
+          if (question.rule.scoreAction == scoreActionEnum.GROUP_SCORE) {
+            questionResultArray.push({
+              questionId: question.questionId,
+              score: isValid ? question.rule.scoreToAdd : 0,
+            });
+          }
+
+          // Add Logic result to the array
+          if (question.rule.scoreAction == scoreActionEnum.COMBINE_SCORE) {
             // Add result to the array
-            resultArray.push({
+            combinedScoreResultArray.push({
               questionId: question.questionId,
               isValid: isValid,
             });
@@ -259,8 +292,16 @@ export class SurveysService {
           });
         });
 
-        const totalGroupedFields = await this.calculateGroupedFields(
-          resultArray,
+        // Calculate Grouped Fields
+        await this.calculateGroupedFields(
+          questionResultArray,
+          groupedFieldResultArray,
+          calculatedScore,
+        );
+
+        const totalGroupedFields = await this.calculateCombinedScore(
+          combinedScoreResultArray,
+          groupedFieldResultArray,
           surveyResultSumary,
         );
 
@@ -303,7 +344,53 @@ export class SurveysService {
   };
 
   async calculateGroupedFields(
-    scoreResult: ScoreResult[],
+    questionResultArray: QuestionResult[],
+    groupedFieldResultArray: GroupedFieldResult[],
+    calculatedScore: number,
+  ) {
+    const groupedFields: Partial<GroupedFieldEntity>[] =
+      await this.prisma.groupedField.findMany({});
+
+    groupedFields.forEach((item) => {
+      let partialCounterScore = 0;
+
+      // Suma todos los scores
+      item.questions.forEach((question) => {
+        const index = questionResultArray.findIndex(
+          (p) => p.questionId == question.questionId,
+        );
+
+        // Find and add all the calculated scores
+        if (index > 0)
+          partialCounterScore =
+            partialCounterScore + questionResultArray[index].score;
+      });
+
+      // Check if calculated scores match with the rule
+      const isValid = this.isValueValid(partialCounterScore, item.rule);
+
+      // Add Score to the final counter
+      if (item.rule.scoreAction == scoreActionEnum.ADD_TO_FINAL_SCORE) {
+        // Only add singleResult score
+        if (isValid) {
+          calculatedScore = calculatedScore + item.rule.scoreToAdd;
+        }
+      }
+
+      // Add Logic result to the array
+      if (item.rule.scoreAction == scoreActionEnum.COMBINE_SCORE) {
+        // Add result to the array
+        groupedFieldResultArray.push({
+          groupedFieldId: item.groupedFieldId,
+          isValid: isValid,
+        });
+      }
+    });
+  }
+
+  async calculateCombinedScore(
+    combinedScoreResultArry: CombinedScoreResult[],
+    groupedFieldResultArray: GroupedFieldResult[],
     surveyResultSumary: SurveyResultSumary[],
   ): Promise<number> {
     // Get Calculated Field to process
@@ -324,12 +411,27 @@ export class SurveysService {
 
       // Create an array of booleans for next step
       item.questionIds.map((questionId) => {
-        const index = scoreResult.findIndex((v) => v.questionId == questionId);
+        const index = combinedScoreResultArry.findIndex(
+          (v) => v.questionId == questionId,
+        );
 
         if (index < 0) return;
 
         // add result
-        tempResults.push(scoreResult[index].isValid);
+        tempResults.push(combinedScoreResultArry[index].isValid);
+      });
+
+      // Push to the temResult the result array from Grouped Array
+      // Create an array of booleans for next step
+      item.groupedFieldIds.map((groupedFieldId) => {
+        const index = groupedFieldResultArray.findIndex(
+          (v) => v.groupedFieldId == groupedFieldId,
+        );
+
+        if (index < 0) return;
+
+        // add result
+        tempResults.push(combinedScoreResultArry[index].isValid);
       });
 
       let addToScore = false;
