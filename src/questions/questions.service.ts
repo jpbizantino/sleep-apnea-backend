@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QuestionEntity } from './entities/question.entity';
-import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
+import { scoreActionEnum } from '../common/enums/scoreAction.enum';
 
 @Injectable()
 export class QuestionsService {
@@ -30,7 +30,7 @@ export class QuestionsService {
     });
 
     return result.filter(
-      (p) => p.rule.scoreAction == scoreActionEnum.ADD_TO_FINAL_SCORE,
+      (p) => p.rule.scoreAction == scoreActionEnum.COMBINE_SCORE,
     );
   }
 

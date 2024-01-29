@@ -1,27 +1,27 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
 import { differenceInYears, format } from 'date-fns';
-import { RuleEntity } from 'src/questions/entities/rule.entity';
 import { utils, write } from 'xlsx';
 import { ParameterName } from '../common/enums/parameter.enum';
 import { ProcessingRuleEnum } from '../common/enums/rule.enum';
+import { scoreActionEnum } from '../common/enums/scoreAction.enum';
 import { truncateString } from '../common/utils/string.utils';
+import { GroupedFieldEntity } from '../grouped-fields/entities/grouped-field.entity';
 import { EmailService } from '../mailer/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { QuestionEntity } from '../questions/entities/question.entity';
+import { RuleEntity } from '../questions/entities/rule.entity';
 import { QuestionsService } from '../questions/questions.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { ResultDto } from './dto/result.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { AnswerEntity } from './entities/answer.entity';
 import {
-  OperatorType,
   CombinedScoreResult,
-  SurveyResultSumary,
-  QuestionResult,
   GroupedFieldResult,
+  OperatorType,
+  QuestionResult,
+  SurveyResultSumary,
 } from './types/survey.types';
-import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
-import { GroupedFieldEntity } from 'src/grouped-fields/entities/grouped-field.entity';
 
 @Injectable()
 export class SurveysService {
@@ -87,7 +87,7 @@ export class SurveysService {
     };
 
     // Return score result
-    if (calculatedScore < desitionScore)
+    if (desitionScore > calculatedScore)
       return { ...resultDto, score: calculatedScore };
     else
       return {
@@ -101,8 +101,8 @@ export class SurveysService {
   calculatePatientConstants = async (
     survey: any,
     surveyResultSumary: SurveyResultSumary[],
-    calculatedScore: number,
-  ) => {
+  ): Promise<number> => {
+    let calculatedScore = 0;
     let ageGreaterThan = 0;
     let isMan = 'M';
     let bmiEqualOrGreateThan = 0;
@@ -151,14 +151,6 @@ export class SurveysService {
       columnValue: calculatedScore.toString(),
     });
 
-    //*******************************
-
-    console.log(
-      'survey.patient.gender , isMan',
-      survey.patient.gender,
-      '  ',
-      isMan,
-    );
     // Score is Man
     if (survey.patient.gender == isMan) calculatedScore++;
 
@@ -173,8 +165,6 @@ export class SurveysService {
       columnName: 'Score Género',
       columnValue: isMan ? '1' : '0',
     });
-
-    //*******************************
 
     //  Calculacte BMI
 
@@ -207,12 +197,12 @@ export class SurveysService {
       columnName: 'Score IMC',
       columnValue: bmi >= bmiEqualOrGreateThan ? bmiScore.toString() : '0',
     });
-    //*******************************
+
+    return calculatedScore;
   };
 
   runAlgorithm = async (Id: string): Promise<number> => {
     let calculatedScore = 0;
-
     const combinedScoreResultArray: CombinedScoreResult[] = [];
     const questionResultArray: QuestionResult[] = [];
     const surveyResultSumary: SurveyResultSumary[] = [];
@@ -230,16 +220,10 @@ export class SurveysService {
       .then(async (survey: any) => {
         //*******************************
 
-        console.log('Calculate Patient Constants');
-
         // Calculate Patient Constants
-        await this.calculatePatientConstants(
-          survey,
-          surveyResultSumary,
-          calculatedScore,
+        await this.calculatePatientConstants(survey, surveyResultSumary).then(
+          (score) => (calculatedScore = calculatedScore + score),
         );
-
-        console.log('Questions ', questions);
 
         survey.answers.forEach((item: AnswerEntity) => {
           // Cast selected values
@@ -296,20 +280,15 @@ export class SurveysService {
         await this.calculateGroupedFields(
           questionResultArray,
           groupedFieldResultArray,
-          calculatedScore,
-        );
+          surveyResultSumary,
+        ).then((score) => (calculatedScore = calculatedScore + score));
 
-        const totalGroupedFields = await this.calculateCombinedScore(
+        await this.calculateCombinedScore(
           combinedScoreResultArray,
           groupedFieldResultArray,
           surveyResultSumary,
-        );
-
-        // Calc combines results
-        calculatedScore = calculatedScore + totalGroupedFields;
+        ).then((score) => (calculatedScore = calculatedScore + score));
       });
-
-    console.log(surveyResultSumary);
 
     // Update Survey Score
     await this.prisma.survey.update({
@@ -326,45 +305,52 @@ export class SurveysService {
   isValueValid = (selectedValue: number, rule: RuleEntity) => {
     let isValid = false;
 
-    // Run comparer
-    if (rule.processingRule == ProcessingRuleEnum.BETWEEN)
-      isValid = selectedValue >= rule.valueA && selectedValue <= rule.valueB;
-    else if (rule.processingRule == ProcessingRuleEnum.GREATER_THAN)
-      isValid = selectedValue > rule.valueA;
-    else if (rule.processingRule == ProcessingRuleEnum.EQUAL_OR_GREATER_THAN)
-      isValid = selectedValue >= rule.valueA;
-    else if (rule.processingRule == ProcessingRuleEnum.LESS_THAN)
-      isValid = selectedValue < rule.valueA;
-    else if (rule.processingRule == ProcessingRuleEnum.EQUAL_OR_LESS_THAN)
-      isValid = selectedValue <= rule.valueA;
-    else if (ProcessingRuleEnum.EQUAL == rule.processingRule)
-      isValid = selectedValue == rule.valueA;
+    try {
+      // Run comparer
+      if (rule.processingRule == ProcessingRuleEnum.BETWEEN)
+        isValid = selectedValue >= rule.valueA && selectedValue <= rule.valueB;
+      else if (rule.processingRule == ProcessingRuleEnum.GREATER_THAN)
+        isValid = selectedValue > rule.valueA;
+      else if (rule.processingRule == ProcessingRuleEnum.EQUAL_OR_GREATER_THAN)
+        isValid = selectedValue >= rule.valueA;
+      else if (rule.processingRule == ProcessingRuleEnum.LESS_THAN)
+        isValid = selectedValue < rule.valueA;
+      else if (rule.processingRule == ProcessingRuleEnum.EQUAL_OR_LESS_THAN)
+        isValid = selectedValue <= rule.valueA;
+      else if (ProcessingRuleEnum.EQUAL == rule.processingRule)
+        isValid = selectedValue == rule.valueA;
+    } catch {
+      return false;
+    }
 
     return isValid;
   };
 
-  async calculateGroupedFields(
+  calculateGroupedFields = async (
     questionResultArray: QuestionResult[],
     groupedFieldResultArray: GroupedFieldResult[],
-    calculatedScore: number,
-  ) {
+    surveyResultSumary: SurveyResultSumary[],
+  ): Promise<number> => {
+    let calculatedScore = 0;
+
     const groupedFields: Partial<GroupedFieldEntity>[] =
-      await this.prisma.groupedField.findMany({});
+      await this.prisma.groupedField.findMany({ include: { questions: true } });
 
     groupedFields.forEach((item) => {
       let partialCounterScore = 0;
 
       // Suma todos los scores
-      item.questions.forEach((question) => {
-        const index = questionResultArray.findIndex(
-          (p) => p.questionId == question.questionId,
-        );
+      item.questions.length > 0 &&
+        item.questions.forEach((question) => {
+          const index = questionResultArray.findIndex(
+            (p) => p.questionId == question.questionId,
+          );
 
-        // Find and add all the calculated scores
-        if (index > 0)
-          partialCounterScore =
-            partialCounterScore + questionResultArray[index].score;
-      });
+          // Find and add all the calculated scores
+          if (index >= 0)
+            partialCounterScore =
+              partialCounterScore + questionResultArray[index].score;
+        });
 
       // Check if calculated scores match with the rule
       const isValid = this.isValueValid(partialCounterScore, item.rule);
@@ -385,8 +371,18 @@ export class SurveysService {
           isValid: isValid,
         });
       }
+
+      // Add value to final result sumary
+      surveyResultSumary.push({
+        columnName: `Score Agrupado ${item.name}`,
+        columnValue: `${
+          calculatedScore ? item.rule.scoreToAdd.toString() : '0'
+        } ${item.rule.scoreAction}`,
+      });
     });
-  }
+
+    return calculatedScore;
+  };
 
   async calculateCombinedScore(
     combinedScoreResultArry: CombinedScoreResult[],
@@ -428,7 +424,7 @@ export class SurveysService {
           (v) => v.groupedFieldId == groupedFieldId,
         );
 
-        if (index < 0) return;
+        if (index < 0 || !combinedScoreResultArry[index]) return;
 
         // add result
         tempResults.push(combinedScoreResultArry[index].isValid);
@@ -498,7 +494,7 @@ export class SurveysService {
       <p>Score:<br>  <b>${survey.calculatedScore}</b></p>    
     `;
 
-    console.log(emailBody);
+    // console.log(emailBody);
     await this.emailService.sendEmail([survey.patient.email], emailBody);
   }
 
@@ -528,9 +524,9 @@ export class SurveysService {
     return result;
   }
 
-  async getExcelHeader() {
-    const questions = await this.questionService.findAll();
+  // async getExcelHeader() {
+  //   const questions = await this.questionService.findAll();
 
-    console.log(questions);
-  }
+  //   console.log(questions);
+  // }
 }

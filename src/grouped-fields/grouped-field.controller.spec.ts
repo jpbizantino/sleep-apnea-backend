@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { GroupedFieldsController } from './grouped-field.controller';
 import { GroupedFieldsService } from './grouped-field.service';
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
+import { scoreActionEnum } from '../common/enums/scoreAction.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupedFieldDto } from './dto/create-grouped-field.dto';
 import { UpdateGroupedFieldDto } from './dto/update-grouped_field.dto';

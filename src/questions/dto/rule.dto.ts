@@ -1,7 +1,7 @@
 import { IsEnum, IsNotEmpty, IsNumber, ValidateIf } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProcessingRuleEnum } from '../../common/enums/rule.enum';
-import { scoreActionEnum } from 'src/common/enums/scoreAction.emu';
+import { scoreActionEnum } from '../../common/enums/scoreAction.enum';
 
 export class RuleDto {
   @IsNotEmpty()

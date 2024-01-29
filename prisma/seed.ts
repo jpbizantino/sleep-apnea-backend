@@ -10,8 +10,9 @@ async function main() {
     update: {},
     create: {
       name: 'DESITION_SCORE',
-      value: '17',
-      description: 'Score para decisión',
+      value: '7',
+      description:
+        'Score para decisión. Si es DESITION_SCORE > a calculatedScore .... moderada/alta probabilidad.',
     },
   });
 
