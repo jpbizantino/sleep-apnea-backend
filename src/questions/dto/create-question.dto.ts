@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
+  IsOptional,
   IsUrl,
   Min,
   ValidateIf,
@@ -22,7 +23,7 @@ export class CreateQuestionDto {
   @ApiProperty()
   question: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
   description: string;
 
