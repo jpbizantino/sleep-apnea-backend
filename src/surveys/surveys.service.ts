@@ -22,6 +22,7 @@ import {
   QuestionResult,
   SurveyResultSumary,
 } from './types/survey.types';
+import { SurveyEntity } from './entities/survey.entity';
 
 @Injectable()
 export class SurveysService {
@@ -47,10 +48,12 @@ export class SurveysService {
   }
 
   async findOne(surveyId: string) {
-    return await this.prisma.survey.findUnique({
-      where: { surveyId },
-      include: { patient: true },
-    });
+    return new SurveyEntity(
+      await this.prisma.survey.findUnique({
+        where: { surveyId },
+        include: { patient: true },
+      }),
+    );
   }
 
   async update(id: string, updateSurveyDto: UpdateSurveyDto) {
@@ -64,7 +67,9 @@ export class SurveysService {
     return await this.prisma.user.delete({ where: { userId: id } });
   }
 
-  interpretResult = async (calculatedScore: number): Promise<ResultDto> => {
+  private interpretResult = async (
+    calculatedScore: number,
+  ): Promise<ResultDto> => {
     let desitionScore = 0;
 
     // Get score
@@ -80,9 +85,7 @@ export class SurveysService {
 
     const resultDto: ResultDto = {
       positive: false,
-      message: negativeMessage,
-      recomendation:
-        'Esta encuesta es orientativa. Siempre consulte a su médico.',
+      determinations: [negativeMessage],
       score: 0,
     };
 
@@ -93,7 +96,7 @@ export class SurveysService {
       return {
         ...resultDto,
         positive: true,
-        message: positiveMessage,
+        determinations: [positiveMessage],
         score: calculatedScore,
       };
   };
@@ -201,12 +204,14 @@ export class SurveysService {
     return calculatedScore;
   };
 
-  runAlgorithm = async (Id: string): Promise<number> => {
+  runAlgorithm = async (Id: string): Promise<ResultDto> => {
+    // Promise<number> => {
     let calculatedScore = 0;
     const combinedScoreResultArray: CombinedScoreResult[] = [];
     const questionResultArray: QuestionResult[] = [];
     const surveyResultSumary: SurveyResultSumary[] = [];
     const groupedFieldResultArray: GroupedFieldResult[] = [];
+    const determinations: string[] = [];
 
     // Get all questions
     // TODO:   Questions should come from the survey so dataset will not change
@@ -217,7 +222,7 @@ export class SurveysService {
     // Get survey results
     await this.prisma.survey
       .findUnique({ where: { surveyId: Id }, include: { patient: true } })
-      .then(async (survey: any) => {
+      .then(async (survey) => {
         //*******************************
 
         // Calculate Patient Constants
@@ -278,9 +283,10 @@ export class SurveysService {
 
         // Calculate Grouped Fields
         await this.calculateGroupedFields(
-          questionResultArray,
           groupedFieldResultArray,
           surveyResultSumary,
+          survey.answers,
+          determinations,
         ).then((score) => (calculatedScore = calculatedScore + score));
 
         await this.calculateCombinedScore(
@@ -290,16 +296,30 @@ export class SurveysService {
         ).then((score) => (calculatedScore = calculatedScore + score));
       });
 
+    const recomendation =
+      'Esta encuesta es orientativa. Siempre consulte a su médico.';
+
+    // Calculate Determinations
+    const result = await this.interpretResult(calculatedScore);
+
+    determinations.unshift(...result.determinations);
+
+    determinations.push(recomendation);
+
+    //Copy new values to result
+    result.determinations = determinations;
+
     // Update Survey Score
     await this.prisma.survey.update({
       where: { surveyId: Id },
       data: {
         calculatedScore: calculatedScore,
         surveyResultSumary: surveyResultSumary,
+        determinations: determinations,
       },
     });
 
-    return calculatedScore;
+    return result;
   };
 
   isValueValid = (selectedValue: number, rule: RuleEntity) => {
@@ -327,39 +347,49 @@ export class SurveysService {
   };
 
   calculateGroupedFields = async (
-    questionResultArray: QuestionResult[],
     groupedFieldResultArray: GroupedFieldResult[],
     surveyResultSumary: SurveyResultSumary[],
+    answers: AnswerEntity[],
+    determinations: string[],
   ): Promise<number> => {
-    let calculatedScore = 0;
+    let scoreToAdd = 0;
 
     const groupedFields: Partial<GroupedFieldEntity>[] =
       await this.prisma.groupedField.findMany({ include: { questions: true } });
 
     groupedFields.forEach((item) => {
-      let partialCounterScore = 0;
+      let counterSelecteValues = 0;
 
-      // Suma todos los scores
+      // Add all answerValues from the survey
       item.questions.length > 0 &&
         item.questions.forEach((question) => {
-          const index = questionResultArray.findIndex(
+          const index = answers.findIndex(
             (p) => p.questionId == question.questionId,
           );
 
           // Find and add all the calculated scores
           if (index >= 0)
-            partialCounterScore =
-              partialCounterScore + questionResultArray[index].score;
+            counterSelecteValues =
+              counterSelecteValues + answers[index].selectedValue;
+
+          // const index = questionResultArray.findIndex(
+          //   (p) => p.questionId == question.questionId,
+          // );
+
+          // // Find and add all the calculated scores
+          // if (index >= 0)
+          //   partialCounterSelecteValues =
+          //     partialCounterSelecteValues + questionResultArray[index].score;
         });
 
       // Check if calculated scores match with the rule
-      const isValid = this.isValueValid(partialCounterScore, item.rule);
+      const isValid = this.isValueValid(counterSelecteValues, item.rule);
 
       // Add Score to the final counter
       if (item.rule.scoreAction == scoreActionEnum.ADD_TO_FINAL_SCORE) {
         // Only add singleResult score
         if (isValid) {
-          calculatedScore = calculatedScore + item.rule.scoreToAdd;
+          scoreToAdd = item.rule.scoreToAdd;
         }
       }
 
@@ -372,16 +402,30 @@ export class SurveysService {
         });
       }
 
+      // Add derived patology if it's valid
+      if (isValid)
+        determinations.push(
+          item.derivedPatology + ' (Suma: ' + counterSelecteValues + ')',
+        );
+
       // Add value to final result sumary
       surveyResultSumary.push({
         columnName: `Score Agrupado ${item.name}`,
         columnValue: `${
-          calculatedScore ? item.rule.scoreToAdd.toString() : '0'
+          scoreToAdd ? item.rule.scoreToAdd.toString() : '0'
         } ${item.rule.scoreAction}`,
+      });
+
+      // Add value to final result sumary
+      surveyResultSumary.push({
+        columnName: `Suma Rtas. ${item.name}`,
+        columnValue: `${
+          counterSelecteValues ? counterSelecteValues.toString() : '0'
+        }`,
       });
     });
 
-    return calculatedScore;
+    return scoreToAdd;
   };
 
   async calculateCombinedScore(
@@ -471,15 +515,17 @@ export class SurveysService {
   async sendEmail(surveyId: string) {
     const survey = await this.findOne(surveyId);
 
-    const result = await this.interpretResult(survey.calculatedScore);
-
+    console.log(survey.determinations.length);
     const emailBody = `
       
-      
-      <p><h3>${result.message}</h3>
-      ${result.recomendation}      
-      </p>
-      
+    <ul>
+    ${survey.determinations
+      .map((p) => {
+        return `<li><h3>${p}</h3></li>`;
+      })
+      .join('')}
+    </ul>
+
       <p>Fecha:<br>  <b>${format(survey.createdAt, 'dd/MM/yyyy HH:mm')}</b></p>
       <p>Paciente:<br>  <b>${survey.patient.lastName}, ${
         survey.patient.firstName

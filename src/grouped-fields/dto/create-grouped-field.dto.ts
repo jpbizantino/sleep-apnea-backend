@@ -19,4 +19,8 @@ export class CreateGroupedFieldDto {
   @Type(() => RuleDto)
   @ApiProperty()
   rule: RuleDto;
+
+  @IsNotEmpty()
+  @ApiProperty()
+  derivedPatology: string;
 }

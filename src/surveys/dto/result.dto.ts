@@ -5,10 +5,7 @@ export class ResultDto {
   positive: boolean;
 
   @ApiProperty()
-  message: string;
-
-  @ApiProperty()
-  recomendation: string;
+  determinations: string[];
 
   @ApiProperty()
   score: number = 0;

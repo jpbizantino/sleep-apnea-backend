@@ -1,9 +1,13 @@
+import { Optional } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { AnswerEntity } from './answer.entity';
-import { Optional } from '@nestjs/common';
-import { Patient } from '@prisma/client';
+import { PatientEntity } from 'src/patients/entities/patient.entity';
 
 export class SurveyEntity {
+  constructor(partial: Partial<SurveyEntity>) {
+    Object.assign(this, partial);
+  }
+
   @ApiProperty()
   surveyId: string;
 
@@ -11,15 +15,21 @@ export class SurveyEntity {
   patientId: string;
 
   @ApiProperty()
+  patient: PatientEntity;
+
+  @ApiProperty()
   answers: AnswerEntity[];
 
   @ApiProperty()
   @Optional()
-  calculatedStore: number;
+  calculatedScore: number;
 
   @ApiProperty()
-  createdAt: string;
+  determinations: string[];
 
   @ApiProperty()
-  updatedAt: string;
+  createdAt: Date;
+
+  @ApiProperty()
+  updatedAt: Date;
 }

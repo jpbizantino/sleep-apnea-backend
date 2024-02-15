@@ -8,12 +8,13 @@ import { UpdateGroupedFieldDto } from './dto/update-grouped_field.dto';
 export class GroupedFieldsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(updateGroupedFieldDto: CreateGroupedFieldDto) {
+  async create(createGroupedFieldDto: CreateGroupedFieldDto) {
     return await this.prisma.groupedField.create({
       data: {
-        name: updateGroupedFieldDto.name,
-        questionIds: updateGroupedFieldDto.questions.map((q) => q.questionId),
-        rule: updateGroupedFieldDto.rule,
+        name: createGroupedFieldDto.name,
+        questionIds: createGroupedFieldDto.questions.map((q) => q.questionId),
+        rule: createGroupedFieldDto.rule,
+        derivedPatology: createGroupedFieldDto.derivedPatology,
       },
     });
   }
@@ -48,6 +49,7 @@ export class GroupedFieldsService {
         name: updateGroupedFieldDto.name,
         questionIds: updateGroupedFieldDto.questions.map((q) => q.questionId),
         rule: updateGroupedFieldDto.rule,
+        derivedPatology: updateGroupedFieldDto.derivedPatology,
       },
     });
   }

@@ -70,9 +70,11 @@ export class SurveysController {
   @Get('/runAlgorithm/:id')
   @ApiCreatedResponse({ type: ResultDto })
   async runAlgotithm(@Param('id') id: string) {
-    const calculatedScore = await this.surveysService.runAlgorithm(id);
+    const surveyResult = await this.surveysService.runAlgorithm(id);
     await this.surveysService.sendEmail(id);
-    return this.surveysService.interpretResult(calculatedScore);
+
+    return surveyResult;
+    //return this.surveysService.interpretResult(calculatedScore);
   }
 
   @Patch(':id')

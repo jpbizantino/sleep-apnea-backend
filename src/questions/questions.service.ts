@@ -4,6 +4,7 @@ import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QuestionEntity } from './entities/question.entity';
 import { scoreActionEnum } from '../common/enums/scoreAction.enum';
+import { QuestionFilterDto } from './dto/question-filter.dto';
 
 @Injectable()
 export class QuestionsService {
@@ -20,8 +21,21 @@ export class QuestionsService {
     return await this.prisma.question.create({ data: createQuestionDto });
   }
 
-  async findAll() {
-    return await this.prisma.question.findMany({ orderBy: { order: 'asc' } });
+  async findAll(questionFilterDto: QuestionFilterDto) {
+    const salida = await this.prisma.question.findMany({
+      where: {
+        question: questionFilterDto.question
+          ? { contains: questionFilterDto.question }
+          : undefined,
+        description: questionFilterDto.description
+          ? { contains: questionFilterDto.description }
+          : undefined,
+      },
+      orderBy: { order: 'asc' },
+    });
+
+    console.log(salida);
+    return salida;
   }
 
   async findAllSingleResults() {

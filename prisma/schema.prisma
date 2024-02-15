@@ -103,6 +103,7 @@ model Survey {
   answers            Answer[]
   calculatedScore    Int?                 @default(0)
   surveyResultSumary SurveyResultSumary[]
+  determinations     String[]             
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   patientId          String               @db.ObjectId
@@ -127,4 +128,5 @@ model GroupedField {
   rule               Rule
   calculatedField    CalculatedField[] @relation(fields: [calculatedFiledIds], references: [calculatedFieldId])
   calculatedFiledIds String[]          @db.ObjectId
+  derivedPatology    String            @default("")
 }

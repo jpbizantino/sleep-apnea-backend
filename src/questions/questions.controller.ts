@@ -19,7 +19,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { QuestionFilterDto } from './dto/question-filter.dto';
 import { QuestionEntity } from './entities/question.entity';
+import { QuestionFilterPipe } from './pipes/question-filter.pipe';
 
 @Controller('questions')
 @ApiTags('questions')
@@ -61,12 +63,15 @@ export class QuestionsController {
     return this.questionsService.findAllGroupScore();
   }
 
-  @Get()
+  // @Get()
+  @Post('/byFilter')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: QuestionEntity, isArray: true })
-  async findAll() {
-    return this.questionsService.findAll();
+  async findAll(
+    @Body(new QuestionFilterPipe()) questionFilteDto: QuestionFilterDto,
+  ) {
+    return this.questionsService.findAll(questionFilteDto);
   }
 
   @Get(':id')

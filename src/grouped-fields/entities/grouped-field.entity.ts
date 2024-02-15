@@ -24,4 +24,7 @@ export class GroupedFieldEntity implements GroupedField {
 
   @ApiProperty()
   rule: RuleEntity;
+
+  @ApiProperty()
+  derivedPatology: string;
 }
