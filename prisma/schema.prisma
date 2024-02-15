@@ -103,7 +103,7 @@ model Survey {
   answers            Answer[]
   calculatedScore    Int?                 @default(0)
   surveyResultSumary SurveyResultSumary[]
-  determinations     String[]             
+  determinations     String[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   patientId          String               @db.ObjectId
